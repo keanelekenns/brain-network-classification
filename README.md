@@ -1,2 +1,2 @@
 # contrast-subgraph
-This repository contains a replication of "Explainable Classification of Brain Networks via Contrast Subgraphs" by Lanciano et al.
+This repository contains a replication of "Explainable Classification of Brain Networks via Contrast Subgraphs" by Lanciano et al. The repository for their paper can be found [here](https://github.com/tlancian/contrast-subgraph)
