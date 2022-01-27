@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description='Graph Classification via Contrast 
 parser.add_argument('d', help='dataset', type=str)
 parser.add_argument('a', help='Group A', type=str)
 parser.add_argument('b', help='Group B', type=str)
-parser.add_argument('alpha', help='alpha', type=float)
+parser.add_argument('numEdge', help='The number of edges used for discriminating between classes', type=int)
 
 args = parser.parse_args()
 
@@ -25,6 +25,11 @@ summary_c1 = reduce(lambda x,y:x+y, map(lambda file: np.loadtxt(file), c1))/len(
 summary_c2 = reduce(lambda x,y:x+y, map(lambda file: np.loadtxt(file), c2))/len(os.listdir(dir2))
 
 diff_net = summary_c1 - summary_c2
+upper_triangle = np.triu(diff_net, 1)
 
-edge_diffs = np.sort(diff_net.flatten())
-print(edge_diffs[0], edge_diffs[-1])
+indices = np.argpartition(upper_triangle, (args.numEdge, -args.numEdge), axis=None)
+top_n = indices[-args.numEdge:]
+bottom_n = indices[:args.numEdge]
+top_n = np.unravel_index(top_n, upper_triangle.shape)
+bottom_n = np.unravel_index(bottom_n, upper_triangle.shape)
+print(bottom_n, top_n, upper_triangle[bottom_n], upper_triangle[top_n])
