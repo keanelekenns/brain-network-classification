@@ -1,5 +1,4 @@
 import argparse
-from cgi import test
 import os
 from functools import reduce
 import numpy as np
