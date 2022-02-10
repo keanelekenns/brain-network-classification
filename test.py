@@ -35,4 +35,45 @@ diff_net = np.triu(summary_A - summary_B, 1)
 partitions = np.argpartition(diff_net, (args.e, -args.e), axis=None)
 top_n = np.unravel_index(partitions[-args.e:], diff_net.shape)
 bottom_n = np.unravel_index(partitions[:args.e], diff_net.shape)
-print(bottom_n, top_n, diff_net[bottom_n], diff_net[top_n])
+top_sum = np.sum(diff_net[top_n])
+bottom_sum = np.sum(diff_net[bottom_n])
+
+# Note: A = 1, B = 0
+predictions_A = np.zeros(len(test_A))
+i = 0
+for file in test_A:
+    g = np.loadtxt(file)
+    a_similarity = np.dot(diff_net[top_n], g[top_n])/top_sum
+    b_similarity = np.dot(diff_net[bottom_n], g[bottom_n])/bottom_sum
+    print("A: {}, B: {}".format(a_similarity, b_similarity))
+    if a_similarity > b_similarity:
+        predictions_A[i] = 1
+    i += 1
+
+predictions_B = np.zeros(len(test_B))
+i = 0
+for file in test_B:
+    g = np.loadtxt(file)
+    a_similarity = np.dot(diff_net[top_n], g[top_n])/top_sum
+    b_similarity = np.dot(diff_net[bottom_n], g[bottom_n])/bottom_sum
+    if a_similarity > b_similarity:
+        predictions_B[i] = 1
+    i += 1
+
+TP = np.sum(predictions_A)
+FN = len(test_A) - TP
+
+FP = np.sum(predictions_B)
+TN = len(test_B) - FP
+
+Accuracy = (TP + TN)/(TP + TN + FP + FN)
+Precision = TP/(TP + FP)
+Recall = TP/(TP + FN)
+F1 = 2*Precision*Recall/(Precision + Recall)
+
+print(predictions_A)
+print(predictions_B)
+print("Accuracy: {}".format(Accuracy))
+print("Precision: {}".format(Precision))
+print("Recall: {}".format(Recall))
+print("F1: {}".format(F1))
