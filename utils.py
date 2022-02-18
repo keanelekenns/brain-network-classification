@@ -18,7 +18,7 @@ def contrast_subgraph_overlap(subject_brain, contrast_subgraph):
     brain_graph = np.triu(subject_brain)
     overlap_count = 0
     for source in contrast_subgraph:
-        brain_dests = np.nonzero(brain_graph[source,:])
+        brain_dests = np.nonzero(brain_graph[source,:])[0]
         overlap_count += np.count_nonzero(np.isin(contrast_subgraph, brain_dests, assume_unique=True))
     return overlap_count
 
