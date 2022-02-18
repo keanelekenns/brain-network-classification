@@ -106,28 +106,28 @@ def cs_p2(contrast_subgraph, summary_A, summary_B, test_A, test_B):
     return predictions_A, predictions_B
 
 def plot_cs_p1(cs_a_b, cs_b_a, graphs_A, graphs_B):
-    induced_by_a_b = induced_by_b_a = np.zeros(graphs_A.shape[0])
+
+    induced_by_a_b = np.zeros(graphs_A.shape[0])
+    induced_by_b_a = np.zeros(graphs_A.shape[0])
     i = 0
     for graph in graphs_A:
-        print(graph.shape, cs_a_b.shape, cs_b_a.shape)
         induced_by_a_b[i] = utils.contrast_subgraph_overlap(graph, cs_a_b)
         induced_by_b_a[i] = utils.contrast_subgraph_overlap(graph, cs_b_a)
-    
-    print(induced_by_a_b, induced_by_b_a)
+        i +=1
+
     fig, ax = plt.subplots()
     ax.scatter(induced_by_a_b, induced_by_b_a, c="#5a7bfc")
 
-    # ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-    #     ylim=(0, 8), yticks=np.arange(1, 8))
-
+    induced_by_a_b = np.zeros(graphs_B.shape[0])
+    induced_by_b_a = np.zeros(graphs_B.shape[0])
+    i = 0
+    for graph in graphs_B:
+        induced_by_a_b[i] = utils.contrast_subgraph_overlap(graph, cs_a_b)
+        induced_by_b_a[i] = utils.contrast_subgraph_overlap(graph, cs_b_a)
+        i +=1
+    
+    ax.scatter(induced_by_a_b, induced_by_b_a, c="#fcaa1b")
     plt.savefig("plot.jpg")
-    # i = 0
-    # for graph in test_B:
-    #     a_similarity = utils.contrast_subgraph_overlap(graph, cs_a_b)
-    #     b_similarity = utils.contrast_subgraph_overlap(graph, cs_b_a)
-    #     if b_similarity > a_similarity:
-    #         predictions_B[i] = 1
-    #     i += 1
 
 
 def main():
