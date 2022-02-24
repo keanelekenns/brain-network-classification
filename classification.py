@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 A_LABEL = "A"
 B_LABEL = "B"
+N_SPLITS = 5
 
 def evaluate_classifier(confusion_matrix):
     """
@@ -102,12 +103,12 @@ def get_AB_labels(graphs_A, graphs_B):
         graphs_B - A 3D numpy array representing a group of brain graphs in class B.
     Returns:
         graphs - A 3D numpy array representing a group of brain graphs in classes A and B.
-        labels - A list holding class labels for each graph in train.
+        labels - A 1D numpy array holding class labels for each graph in graphs.
     """
     labels_A = [A_LABEL]*len(graphs_A)
     labels_B = [B_LABEL]*len(graphs_B)
     graphs = np.concatenate((graphs_A, graphs_B))
-    labels = labels_A + labels_B
+    labels = np.array(labels_A + labels_B)
     return graphs, labels
 
 def main():
@@ -124,50 +125,57 @@ def main():
     # Read brain graph files into numpy arrays
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)
-    # Split into training and testing samples
-    train_A, test_A = train_test_split(graphs_A, test_size=0.2, random_state=23)
-    train_B, test_B = train_test_split(graphs_B, test_size=0.2, random_state=23)
-    # Create and Write Summary Graphs
-    summary_A = utils.summary_graph(train_A)
-    summary_B = utils.summary_graph(train_B)
 
-    train_graphs, train_labels = get_AB_labels(train_A, train_B)
-    test_graphs, test_labels = get_AB_labels(test_A, test_B)
-    
-    classifier = LinearSVC()
+    graphs, labels = get_AB_labels(graphs_A, graphs_B)
 
-    # Get the difference network between the edge weights in group A and B
-    if args.p == 1:
-        diff_a_b = summary_A - summary_B
-        diff_b_a = summary_B - summary_A
-        # Call function(s) for generating contrast subgraphs
+    metrics = np.zeros(4) # 4 metrics: accuracy, precision, recall, f1
+    # 5-fold cross validation
+    skf = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=23)
+    for train_index, test_index in skf.split(graphs, labels):
+        train_graphs, test_graphs = graphs[train_index], graphs[test_index]
+        train_labels, test_labels = labels[train_index], labels[test_index]
 
-        # TEMPORARILY HARDCODED
-        # Children TD-ASD alpha = 0.8
-        cs_a_b = np.array([4, 6, 8, 9, 13, 15, 92, 88, 60])
-        # Children ASD-TD alpha = 0.8
-        cs_b_a = np.array([36, 37, 71, 41, 74, 76, 77, 79, 81, 55, 38, 95])
-
-        classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
-        test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
-        print(classification_report(test_labels, test_pred))
-        print(confusion_matrix(test_labels, test_pred))
-        print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
-    else:
-        diff = abs(summary_A - summary_B)
-        # Call function(s) for generating contrast subgraph
-
-        # TEMPORARILY HARDCODED
-        cs = np.array([4, 6, 8, 9, 13, 15, 92, 88, 60])
-
-        classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
-        test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
-        print(classification_report(test_labels, test_pred))
-        print(confusion_matrix(test_labels, test_pred))
-        print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
-
+        # Create and Write Summary Graphs
+        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == A_LABEL)])
+        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == B_LABEL)])
         
+        classifier = LinearSVC()
 
+        # Get the difference network between the edge weights in group A and B
+        if args.p == 1:
+            diff_a_b = summary_A - summary_B
+            diff_b_a = summary_B - summary_A
+            # Call function(s) for generating contrast subgraphs
+
+            # TEMPORARILY HARDCODED
+            # Children TD-ASD alpha = 0.8
+            cs_a_b = np.array([4, 6, 8, 9, 13, 15, 92, 88, 60])
+            # Children ASD-TD alpha = 0.8
+            cs_b_a = np.array([36, 37, 71, 41, 74, 76, 77, 79, 81, 55, 38, 95])
+
+            classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
+            test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
+        else:
+            diff = abs(summary_A - summary_B)
+            # Call function(s) for generating contrast subgraph
+
+            # TEMPORARILY HARDCODED
+            cs = np.array([4, 6, 8, 9, 13, 15, 92, 88, 60])
+
+            classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
+            test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
+
+        print(classification_report(test_labels, test_pred))
+        print(confusion_matrix(test_labels, test_pred))
+        print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
+        metrics += evaluate_classifier(confusion_matrix(test_labels, test_pred))
+
+    metrics /= N_SPLITS
+    print("Average Metrics:")
+    print("Accuracy: ", metrics[0])
+    print("Precision: ", metrics[1])
+    print("Recall: ", metrics[2])
+    print("F1: ", metrics[3])
 
 if __name__ == "__main__":
     main()
