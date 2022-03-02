@@ -1,6 +1,7 @@
 import numpy as np
 import argparse
 import utils
+import densdp
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
@@ -145,22 +146,17 @@ def main():
         if args.p == 1:
             diff_a_b = summary_A - summary_B
             diff_b_a = summary_B - summary_A
-            # Call function(s) for generating contrast subgraphs
 
-            # TEMPORARILY HARDCODED
-            # Children TD-ASD alpha = 0.8
-            cs_a_b = np.array([4, 6, 8, 9, 13, 15, 92, 88, 60])
-            # Children ASD-TD alpha = 0.8
-            cs_b_a = np.array([36, 37, 71, 41, 74, 76, 77, 79, 81, 55, 38, 95])
+            cs_a_b = densdp.densdp(diff_a_b, args.alpha)
+            cs_b_a = densdp.densdp(diff_b_a, args.alpha)
+            print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
 
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
             test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
         else:
             diff = abs(summary_A - summary_B)
-            # Call function(s) for generating contrast subgraph
-
-            # TEMPORARILY HARDCODED
-            cs = np.array([4, 6, 8, 9, 13, 15, 92, 88, 60])
+            
+            cs = densdp.densdp(diff, args.alpha)
 
             classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
             test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
