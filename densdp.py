@@ -39,4 +39,4 @@ def densdp(diff_net, alpha):
     # do local search to try to improve solution
     # print(nx.cliques_containing_node(G, S_bar))
     # S, obj_rounded = localSearchNegativeOQC(G, alpha, t_max=50, seed=S_bar)
-    return S_bar
+    return [nodes[i - 1] for i in nodeset]

@@ -150,7 +150,7 @@ def main():
             cs_a_b = densdp.densdp(diff_a_b, args.alpha)
             cs_b_a = densdp.densdp(diff_b_a, args.alpha)
             print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
-
+            print(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a))
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
             test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
         else:
