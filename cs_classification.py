@@ -108,6 +108,7 @@ def main():
     parser.add_argument('-a', help='A secondary alpha value to use for the contrast subgraph from B to A \
             (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs \
             if this is not provided.', type=float)
+    parser.add_argument('-prefix', help='A string to prepend to plot names', type=str, default="")
 
     args = parser.parse_args()
     if(args.alpha < 0 or args.alpha > 1):
@@ -122,6 +123,8 @@ def main():
     graphs, labels = get_AB_labels(graphs_A, graphs_B)
     # 4 metrics: accuracy, precision, recall, f1
     metrics = np.zeros(4)
+    # Keep track of the nodes that are common to all contrast subgraphs found
+    important_nodes = []
 
     # k-fold cross validation
     skf = StratifiedKFold(n_splits=args.k, shuffle=True, random_state=23)
@@ -144,15 +147,29 @@ def main():
             cs_a_b = densdp.densdp(diff_a_b, args.alpha)
             cs_b_a = densdp.densdp(diff_b_a, args.a if args.a else args.alpha)
             print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
-            plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels, "plots/CS-P1-{}".format(i))
+            if not important_nodes: #Check if list is empty
+                important_nodes = [set(cs_a_b), set(cs_b_a)]
+            else:
+                important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
+                                   set(cs_b_a).intersection(important_nodes[1])]
+            print("IMPORTANT NODES", important_nodes)
+            plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
+                        train_labels,
+                        "plots/{}CS-P1-{}".format(args.prefix,i))
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
             test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
         else:
             diff = abs(summary_A - summary_B)
             
             cs = densdp.densdp(diff, args.alpha)
-
-            plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels, "plots/CS-P2-{}".format(i))
+            if not important_nodes: #Check if list is empty
+                important_nodes = set(cs)
+            else:
+                important_nodes = set(cs).intersection(important_nodes)
+            print("IMPORTANT NODES", important_nodes)
+            plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
+                        train_labels,
+                        "plots/{}CS-P2-{}".format(args.prefix,i))
             classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
             test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
 
@@ -167,6 +184,7 @@ def main():
     print("Precision: ", metrics[1])
     print("Recall: ", metrics[2])
     print("F1: ", metrics[3])
+    print("Important Nodes: ", important_nodes)
 
 if __name__ == "__main__":
     main()
