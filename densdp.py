@@ -32,32 +32,32 @@ def localSearch(graph, node_set, alpha, max_iterations=2):
     edge_weight_surplus = utils.edge_weight_surplus(g, nodes[S], alpha)
     found = False
     i = 0
-    while i <= max_iterations:
+    while i < max_iterations:
         i += 1
         while True:
             found = False
             for node in nodes[V]:
-                S[node] = True
+                S[node] = True # Put node in S
                 new_edge_weight_surplus = utils.edge_weight_surplus(g, nodes[S], alpha)
                 if new_edge_weight_surplus > edge_weight_surplus:
                     edge_weight_surplus = new_edge_weight_surplus
-                    V[node] = False
+                    V[node] = False # Take node out of V
                     found = True
                 else:
-                    S[node] = False
+                    S[node] = False # Take node back out of S
             if not found:
                 break
         while True:
             found = False
             for node in nodes[S]:
-                S[node] = False
+                S[node] = False # Take node out of S
                 new_edge_weight_surplus = utils.edge_weight_surplus(g, nodes[S], alpha)
                 if new_edge_weight_surplus >= edge_weight_surplus:
                     edge_weight_surplus = new_edge_weight_surplus
-                    V[node] = True
+                    V[node] = True # Put node in V
                     found = True
                 else:
-                    S[node] = True
+                    S[node] = True # Put node back in S
             if not found:
                 break
     return nodes[S].copy()
@@ -93,7 +93,5 @@ def densdp(diff_net, alpha):
     nodes = list(G.nodes())
     S_bar = G.subgraph([nodes[i - 1] for i in nodeset])
     print([nodes[i - 1] for i in nodeset])
-    # do local search to try to improve solution
-    # print(nx.cliques_containing_node(G, S_bar))
-    # S, obj_rounded = localSearchNegativeOQC(G, alpha, t_max=50, seed=S_bar)
-    return [nodes[i - 1] for i in nodeset]
+    
+    return localSearch(diff_net, nodeset, alpha)
