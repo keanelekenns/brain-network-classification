@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 A_LABEL = "A"
 B_LABEL = "B"
-N_SPLITS = 5
 
 def evaluate_classifier(confusion_matrix):
     """
@@ -118,10 +117,16 @@ def main():
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files', type=str)
     parser.add_argument('alpha', help='Penalty value for contrast subgraph size (varies from 0 to 1)', type=float)
     parser.add_argument('-p', help='Problem Forumlation (default: 1)', type=int, default = 1, choices={1,2})
+    parser.add_argument('-k', help='Number of times to fold data in k-fold cross validation (default: 5)', type=int, default = 5)
+    parser.add_argument('-a', help='A secondary alpha value to use for the contrast subgraph from B to A \
+            (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs \
+            if this is not provided.', type=float)
 
     args = parser.parse_args()
     if(args.alpha < 0 or args.alpha > 1):
         raise ValueError("alpha should be between 0 and 1 inclusive.")
+    if(args.a and (args.a < 0 or args.a > 1)):
+        raise ValueError("secondary alpha should be between 0 and 1 inclusive.")
     
     # Read brain graph files into numpy arrays
     graphs_A = utils.get_graphs_from_files(args.A_dir)
@@ -131,7 +136,7 @@ def main():
 
     metrics = np.zeros(4) # 4 metrics: accuracy, precision, recall, f1
     # 5-fold cross validation
-    skf = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=23)
+    skf = StratifiedKFold(n_splits=args.k, shuffle=True, random_state=23)
     for train_index, test_index in skf.split(graphs, labels):
         train_graphs, test_graphs = graphs[train_index], graphs[test_index]
         train_labels, test_labels = labels[train_index], labels[test_index]
@@ -148,7 +153,7 @@ def main():
             diff_b_a = summary_B - summary_A
 
             cs_a_b = densdp.densdp(diff_a_b, args.alpha)
-            cs_b_a = densdp.densdp(diff_b_a, args.alpha)
+            cs_b_a = densdp.densdp(diff_b_a, args.a if args.a else args.alpha)
             print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
             print(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a))
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
@@ -166,7 +171,7 @@ def main():
         print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
         metrics += evaluate_classifier(confusion_matrix(test_labels, test_pred))
 
-    metrics /= N_SPLITS
+    metrics /= args.k
     print("Average Metrics:")
     print("Accuracy: ", metrics[0])
     print("Precision: ", metrics[1])
