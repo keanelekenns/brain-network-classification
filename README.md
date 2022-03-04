@@ -26,3 +26,4 @@ optional arguments:
 ```
 
 The output of this program is a report on the average accuracy, precision, recall, and f1-score achieved by the classifier over the k-fold cross validation.
+It also stores plots of the graphs used for training as shown in figures 5 and 6 of the paper for problem formulation 1 and 2 respectively.
