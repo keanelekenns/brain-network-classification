@@ -67,3 +67,23 @@ def summary_graph(graphs):
         will contain, as entries, the percentage of graphs that each edge is in.
     """
     return np.sum(graphs, axis=0)/graphs.shape[0]
+
+def edge_weight_surplus(graph, node_set, alpha):
+    """
+    Given a weighted graph and a set of nodes, calculate the function:
+    f_alpha(node_set) = SUM(graph[u,v] - alpha) for all u,v in node_set
+    Inputs:
+        graph - A 2D numpy array of shape (|V|, |V|) where V is the vertex
+        set for the graph. The value of graph[i,j] is the weight
+        of the edge from node i to node j.
+        node_set - A 1D numpy array containing vertex indexes of a subgraph
+        of graph.
+        alpha - Penalty value for large graphs (between 0 and 1).
+    Returns:
+        edge_weight_surplus - A value indicating the edge weight surplus.
+        This is given by f_alpha(node_set) above.
+    """
+    g = np.triu(graph)
+    edge_weight_sum = induce_subgraph(g, node_set).sum()
+    N = node_set.shape[0]
+    return edge_weight_sum - alpha * (N * (N - 1)) / 2
