@@ -25,4 +25,4 @@ optional arguments:
   -a A        A secondary alpha value to use for the contrast subgraph from B to A (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs if this is not provided.
 ```
 
-The output of this function is a report on the average accuracy, precision, recall, and f1-score achieved by the classifier over the k-fold cross validation.
+The output of this program is a report on the average accuracy, precision, recall, and f1-score achieved by the classifier over the k-fold cross validation.

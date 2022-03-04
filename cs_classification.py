@@ -71,29 +71,16 @@ def cs_p2_graphs_to_points(graphs, contrast_subgraph, summary_A, summary_B):
                                                 utils.induce_subgraph(summary_A, contrast_subgraph))]),
                              graphs)))
 
-def plot_cs_p1(cs_a_b, cs_b_a, graphs_A, graphs_B):
-
-    induced_by_a_b = np.zeros(graphs_A.shape[0])
-    induced_by_b_a = np.zeros(graphs_A.shape[0])
-    i = 0
-    for graph in graphs_A:
-        induced_by_a_b[i] = utils.contrast_subgraph_overlap(graph, cs_a_b)
-        induced_by_b_a[i] = utils.contrast_subgraph_overlap(graph, cs_b_a)
-        i +=1
+def plot_points(points, labels, plotname):
+    x_vals = points[:,0]
+    y_vals = points[:,1]
+    x_vals_A, y_vals_A = x_vals[np.where(labels == A_LABEL)], y_vals[np.where(labels == A_LABEL)]
+    x_vals_B, y_vals_B = x_vals[np.where(labels == B_LABEL)], y_vals[np.where(labels == B_LABEL)]
 
     fig, ax = plt.subplots()
-    ax.scatter(induced_by_a_b, induced_by_b_a, c="#5a7bfc")
-
-    induced_by_a_b = np.zeros(graphs_B.shape[0])
-    induced_by_b_a = np.zeros(graphs_B.shape[0])
-    i = 0
-    for graph in graphs_B:
-        induced_by_a_b[i] = utils.contrast_subgraph_overlap(graph, cs_a_b)
-        induced_by_b_a[i] = utils.contrast_subgraph_overlap(graph, cs_b_a)
-        i +=1
-    
-    ax.scatter(induced_by_a_b, induced_by_b_a, c="#fcaa1b")
-    plt.savefig("plot.jpg")
+    ax.scatter(x_vals_A, y_vals_A, c="#5a7bfc")
+    ax.scatter(x_vals_B, y_vals_B, c="#fcaa1b")
+    plt.savefig(plotname)
 
 def get_AB_labels(graphs_A, graphs_B):
     """
@@ -133,10 +120,12 @@ def main():
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
     graphs, labels = get_AB_labels(graphs_A, graphs_B)
+    # 4 metrics: accuracy, precision, recall, f1
+    metrics = np.zeros(4)
 
-    metrics = np.zeros(4) # 4 metrics: accuracy, precision, recall, f1
-    # 5-fold cross validation
+    # k-fold cross validation
     skf = StratifiedKFold(n_splits=args.k, shuffle=True, random_state=23)
+    i = 0
     for train_index, test_index in skf.split(graphs, labels):
         train_graphs, test_graphs = graphs[train_index], graphs[test_index]
         train_labels, test_labels = labels[train_index], labels[test_index]
@@ -155,7 +144,7 @@ def main():
             cs_a_b = densdp.densdp(diff_a_b, args.alpha)
             cs_b_a = densdp.densdp(diff_b_a, args.a if args.a else args.alpha)
             print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
-            print(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a))
+            plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels, "plots/CS-P1-{}".format(i))
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
             test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
         else:
@@ -163,6 +152,7 @@ def main():
             
             cs = densdp.densdp(diff, args.alpha)
 
+            plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels, "plots/CS-P2-{}".format(i))
             classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
             test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
 
@@ -170,7 +160,7 @@ def main():
         print(confusion_matrix(test_labels, test_pred))
         print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
         metrics += evaluate_classifier(confusion_matrix(test_labels, test_pred))
-
+        i += 1
     metrics /= args.k
     print("Average Metrics:")
     print("Accuracy: ", metrics[0])
