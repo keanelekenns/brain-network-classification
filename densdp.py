@@ -2,7 +2,6 @@
 import networkx as nx
 import oqc_sdp
 import numpy as np
-import scipy.io
 import cvxpy as cp
 import utils
 
@@ -40,7 +39,7 @@ def localSearch(graph, node_set, alpha, max_iterations=2):
                 S[node] = True # Put node in S
                 new_edge_weight_surplus = utils.edge_weight_surplus(g, nodes[S], alpha)
                 if new_edge_weight_surplus > edge_weight_surplus:
-                    print(nodes[S], "Old", edge_weight_surplus, "New", new_edge_weight_surplus)
+                    # print(nodes[S], "Old", edge_weight_surplus, "New", new_edge_weight_surplus)
                     edge_weight_surplus = new_edge_weight_surplus
                     V[node] = False # Take node out of V
                     found = True
@@ -54,7 +53,7 @@ def localSearch(graph, node_set, alpha, max_iterations=2):
                 S[node] = False # Take node out of S
                 new_edge_weight_surplus = utils.edge_weight_surplus(g, nodes[S], alpha)
                 if new_edge_weight_surplus >= edge_weight_surplus:
-                    print(nodes[S], "Old", edge_weight_surplus, "New", new_edge_weight_surplus)
+                    # print(nodes[S], "Old", edge_weight_surplus, "New", new_edge_weight_surplus)
                     edge_weight_surplus = new_edge_weight_surplus
                     V[node] = True # Put node in V
                     found = True
