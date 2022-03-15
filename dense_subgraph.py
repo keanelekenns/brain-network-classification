@@ -3,6 +3,7 @@ import networkx as nx
 import oqc_sdp
 import numpy as np
 import cvxpy as cp
+import cvxopt
 import utils
 
 def localSearch(graph, node_set, alpha, max_iterations=2):
@@ -64,9 +65,9 @@ def localSearch(graph, node_set, alpha, max_iterations=2):
     return nodes[S].copy()
             
 
-def densdp(diff_net, alpha):
+def sdp(diff_net, alpha):
     """
-    Find a contrast subgraph given a differenct network (effectively a densely weighted subgraph)
+    Find a contrast subgraph by finding a dense subgraph using an SDP solver.
     Inputs:
         diff_net: A 2D numpy array of shape (|V|, |V|) where V is the vertex
         set for the studied graphs. The value of diff_net[i,j] is the weight
@@ -95,3 +96,41 @@ def densdp(diff_net, alpha):
     S_bar = G.subgraph([nodes[i - 1] for i in nodeset])
     print("NODESET", nodeset)
     return localSearch(diff_net, nodeset, alpha)
+
+def qp(diff_net, alpha):
+    """
+    Find a contrast subgraph by finding a dense subgraph using a QP solver.
+    Inputs:
+        diff_net: A 2D numpy array of shape (|V|, |V|) where V is the vertex
+        set for the studied graphs. The value of diff_net[i,j] is the weight
+        of the edge from node i to node j.
+        alpha - Penalty value for large graphs (between 0 and 1).
+    Returns:
+        constrast_subgraph - A 1D numpy array containing vertex indexes of a contrast subgraph.
+    """
+    N = diff_net.shape[0]
+    assert(N == diff_net.shape[1])
+    objective_function = diff_net - alpha
+    np.fill_diagonal(objective_function, 0)
+
+    # CVXOPT can only minimize x in the expression (1/2) x.T @ P @ x + q.T @ x
+    # subject to Gx << h (and Ax = b, but that's not applicable here)
+    # So we need to invert the objective function, because we want to maximize it.
+    P = np.triu(-objective_function)
+    q = np.sum(-objective_function, axis=0)
+    G = np.zeros((2*N, N))
+    for i in range(N):
+        G[2*i,i] = 1
+        G[2*i+1,i] = -1
+    h = np.ones(2*N)
+
+    P = cvxopt.matrix(P)
+    q = cvxopt.matrix(q)
+    G = cvxopt.matrix(G)
+    h = cvxopt.matrix(h)
+    sol = cvxopt.solvers.qp(P,q,G,h)
+    x = np.array(sol['x'])
+    # objective_value = sol['primal objective']
+    nodeset = np.where(x > 0)[0]
+    return nodeset
+    # return localSearch(diff_net, nodeset, alpha)

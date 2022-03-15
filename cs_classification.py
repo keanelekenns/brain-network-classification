@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
 import utils
-import densdp
+import dense_subgraph
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
@@ -109,12 +109,18 @@ def main():
             (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs \
             if this is not provided.', type=float)
     parser.add_argument('-prefix', help='A string to prepend to plot names', type=str, default="")
+    parser.add_argument('-solver', help='Solver to use for finding a contrast subgraph (default: sdp)', type=str, default = "sdp", choices={"sdp","qp"})
 
     args = parser.parse_args()
     if(args.alpha < 0 or args.alpha > 1):
         raise ValueError("alpha should be between 0 and 1 inclusive.")
     if(args.a and (args.a < 0 or args.a > 1)):
         raise ValueError("secondary alpha should be between 0 and 1 inclusive.")
+    
+    if args.solver == "sdp":
+        solver = dense_subgraph.sdp
+    elif args.solver == "qp":
+        solver = dense_subgraph.qp
     
     # Read brain graph files into numpy arrays
     graphs_A = utils.get_graphs_from_files(args.A_dir)
@@ -144,8 +150,8 @@ def main():
             diff_a_b = summary_A - summary_B
             diff_b_a = summary_B - summary_A
 
-            cs_a_b = densdp.densdp(diff_a_b, args.alpha)
-            cs_b_a = densdp.densdp(diff_b_a, args.a if args.a else args.alpha)
+            cs_a_b = solver(diff_a_b, args.alpha)
+            cs_b_a = solver(diff_b_a, args.a if args.a else args.alpha)
             print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
             if not important_nodes: #Check if list is empty
                 important_nodes = [set(cs_a_b), set(cs_b_a)]
@@ -161,7 +167,7 @@ def main():
         else:
             diff = abs(summary_A - summary_B)
             
-            cs = densdp.densdp(diff, args.alpha)
+            cs = solver(diff, args.alpha)
             if not important_nodes: #Check if list is empty
                 important_nodes = set(cs)
             else:
