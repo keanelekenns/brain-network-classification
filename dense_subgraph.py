@@ -23,8 +23,9 @@ def localSearch(graph, node_set, alpha, max_iterations=2):
         refined_node_set - A 1D numpy array containing vertex indexes
         of a dense subgraph of graph.
     """
+    print("Contrast subgraph before local search", node_set)
     # Don't want to double count edges, so only take upper triangle
-    g = np.triu(graph)
+    g = np.triu(graph, k=1)
     nodes = np.arange(graph.shape[0])
     # Create masks for nodes inside the refined_node_set and those outside it
     S = np.array([v in node_set for v in nodes])
@@ -62,6 +63,7 @@ def localSearch(graph, node_set, alpha, max_iterations=2):
                     S[node] = True # Put node back in S
             if not found:
                 break
+    print("Contrast subgraph after local search", nodes[S])
     return nodes[S].copy()
             
 
@@ -77,7 +79,7 @@ def sdp(diff_net, alpha):
         constrast_subgraph - A 1D numpy array containing vertex indexes of a contrast subgraph.
     """
     G = nx.from_numpy_array(diff_net)
-    print ("Loaded graph with %s nodes and %s edges" % (len(G), G.number_of_edges()))
+    # print ("Loaded graph with %s nodes and %s edges" % (len(G), G.number_of_edges()))
     w, d = oqc_sdp._make_coefficient_matrices(diff_net)
     P = np.matrix(w - alpha * d)
 
@@ -92,9 +94,6 @@ def sdp(diff_net, alpha):
 
     L = oqc_sdp.semidefinite_cholesky(X)
     nodeset, obj, obj_rounded = oqc_sdp.random_projection_qp(L, P, diff_net, alpha, t=1000)
-    nodes = list(G.nodes())
-    S_bar = G.subgraph([nodes[i - 1] for i in nodeset])
-    print("NODESET", nodeset)
     return localSearch(diff_net, nodeset, alpha)
 
 def qp(diff_net, alpha):
@@ -116,7 +115,7 @@ def qp(diff_net, alpha):
     # CVXOPT can only minimize x in the expression (1/2) x.T @ P @ x + q.T @ x
     # subject to Gx << h (and Ax = b, but that's not applicable here)
     # So we need to invert the objective function, because we want to maximize it.
-    P = np.triu(-objective_function)
+    P = np.triu(-objective_function, k=1)
     q = np.sum(-objective_function, axis=0)
     G = np.zeros((2*N, N))
     for i in range(N):
@@ -128,9 +127,11 @@ def qp(diff_net, alpha):
     q = cvxopt.matrix(q)
     G = cvxopt.matrix(G)
     h = cvxopt.matrix(h)
+    # suppress output
+    cvxopt.solvers.options['show_progress'] = False
     sol = cvxopt.solvers.qp(P,q,G,h)
     x = np.array(sol['x'])
     # objective_value = sol['primal objective']
     nodeset = np.where(x > 0)[0]
+    localSearch(diff_net, nodeset, alpha)
     return nodeset
-    # return localSearch(diff_net, nodeset, alpha)

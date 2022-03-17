@@ -98,6 +98,106 @@ def get_AB_labels(graphs_A, graphs_B):
     labels = np.array(labels_A + labels_B)
     return graphs, labels
 
+def classify(graphs, labels, alpha=0.05, alpha2=None, problem=1, num_folds=5, solver=dense_subgraph.sdp, prefix=""):
+    # Variables used for reporting at the end
+
+    # Cumulative confusion matrix is needed because sometimes the test sample is not large enough
+    # and we end up with zeros in the confusion matrix for each run.
+    # This messes up the final reporting.
+    cumulative_confusion_matrix = np.zeros((2,2))
+    # 4 metrics: accuracy, precision, recall, f1
+    metrics = np.zeros(4)
+    # Keep track of the nodes that are common to all contrast subgraphs found
+    important_nodes = []
+
+    # Reporting
+    print("Problem Formulation {} with".format(problem), end=" ")
+    if problem == 1:
+        print("A->B alpha = {}, B->A alpha = {}".format(alpha, alpha2 if alpha2 else alpha))
+    elif problem == 2:
+        print("alpha = {}".format(alpha))
+
+    # k-fold cross validation
+    print("Performing {}-fold cross validation...".format(num_folds))
+    skf = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state=23)
+    i = 0
+    for train_index, test_index in skf.split(graphs, labels):
+        train_graphs, test_graphs = graphs[train_index], graphs[test_index]
+        train_labels, test_labels = labels[train_index], labels[test_index]
+
+        # Create and Write Summary Graphs
+        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == A_LABEL)])
+        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == B_LABEL)])
+        
+        classifier = LinearSVC()
+
+        # Get the difference network between the edge weights in group A and B
+        if problem == 1:
+            diff_a_b = summary_A - summary_B
+            diff_b_a = summary_B - summary_A
+
+            cs_a_b = solver(diff_a_b, alpha)
+            cs_b_a = solver(diff_b_a, alpha2 if alpha2 else alpha)
+            # print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
+            if not important_nodes: #Check if list is empty
+                important_nodes = [set(cs_a_b), set(cs_b_a)]
+            else:
+                important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
+                                   set(cs_b_a).intersection(important_nodes[1])]
+            # print("IMPORTANT NODES", important_nodes)
+            plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
+                        train_labels,
+                        "plots/{}CS-P1-{}-train".format(prefix,i))
+            classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
+            test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
+            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
+                        test_pred,
+                        "plots/{}CS-P1-{}-test-pred".format(prefix,i))
+            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
+                        test_labels,
+                        "plots/{}CS-P1-{}-test-true".format(prefix,i))
+        else:
+            diff = abs(summary_A - summary_B)
+            
+            cs = solver(diff, alpha)
+            # print("CONTRAST SUBGRAPH\n",cs)
+            if not important_nodes: #Check if list is empty
+                important_nodes = set(cs)
+            else:
+                important_nodes = set(cs).intersection(important_nodes)
+            # print("IMPORTANT NODES", important_nodes)
+            plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
+                        train_labels,
+                        "plots/{}CS-P2-{}-train".format(prefix,i))
+            classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
+            test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
+            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
+                        test_pred,
+                        "plots/{}CS-P2-{}-test-pred".format(prefix,i))
+            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
+                        test_labels,
+                        "plots/{}CS-P2-{}-test-true".format(prefix,i))
+
+        # print(classification_report(test_labels, test_pred))
+        # print(confusion_matrix(test_labels, test_pred))
+        # print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
+        metrics += evaluate_classifier(confusion_matrix(test_labels, test_pred))
+        cumulative_confusion_matrix += confusion_matrix(test_labels, test_pred)
+        i += 1
+    metrics /= num_folds
+    print("Average Metrics using separate confusion matrices:")
+    print("Accuracy: ", metrics[0])
+    print("Precision: ", metrics[1])
+    print("Recall: ", metrics[2])
+    print("F1: ", metrics[3])
+
+    print("Metrics using cumulative confusion matrix:")
+    print(cumulative_confusion_matrix)
+    print("Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}"
+            .format(*evaluate_classifier(cumulative_confusion_matrix)))
+
+    print("Important Nodes: ", important_nodes)
+
 def main():
     parser = argparse.ArgumentParser(description='Graph Classification via Contrast Subgraphs')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files', type=str)
@@ -127,82 +227,8 @@ def main():
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
     graphs, labels = get_AB_labels(graphs_A, graphs_B)
-    # 4 metrics: accuracy, precision, recall, f1
-    metrics = np.zeros(4)
-    # Keep track of the nodes that are common to all contrast subgraphs found
-    important_nodes = []
-
-    # k-fold cross validation
-    skf = StratifiedKFold(n_splits=args.k, shuffle=True, random_state=23)
-    i = 0
-    for train_index, test_index in skf.split(graphs, labels):
-        train_graphs, test_graphs = graphs[train_index], graphs[test_index]
-        train_labels, test_labels = labels[train_index], labels[test_index]
-
-        # Create and Write Summary Graphs
-        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == A_LABEL)])
-        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == B_LABEL)])
-        
-        classifier = LinearSVC()
-
-        # Get the difference network between the edge weights in group A and B
-        if args.p == 1:
-            diff_a_b = summary_A - summary_B
-            diff_b_a = summary_B - summary_A
-
-            cs_a_b = solver(diff_a_b, args.alpha)
-            cs_b_a = solver(diff_b_a, args.a if args.a else args.alpha)
-            print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
-            if not important_nodes: #Check if list is empty
-                important_nodes = [set(cs_a_b), set(cs_b_a)]
-            else:
-                important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
-                                   set(cs_b_a).intersection(important_nodes[1])]
-            print("IMPORTANT NODES", important_nodes)
-            plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
-                        train_labels,
-                        "plots/{}CS-P1-{}-train".format(args.prefix,i))
-            classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
-            test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
-            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
-                        test_pred,
-                        "plots/{}CS-P1-{}-test-pred".format(args.prefix,i))
-            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
-                        test_labels,
-                        "plots/{}CS-P1-{}-test-true".format(args.prefix,i))
-        else:
-            diff = abs(summary_A - summary_B)
-            
-            cs = solver(diff, args.alpha)
-            if not important_nodes: #Check if list is empty
-                important_nodes = set(cs)
-            else:
-                important_nodes = set(cs).intersection(important_nodes)
-            print("IMPORTANT NODES", important_nodes)
-            plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
-                        train_labels,
-                        "plots/{}CS-P2-{}-train".format(args.prefix,i))
-            classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
-            test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
-            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
-                        test_pred,
-                        "plots/{}CS-P2-{}-test-pred".format(args.prefix,i))
-            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
-                        test_labels,
-                        "plots/{}CS-P2-{}-test-true".format(args.prefix,i))
-
-        print(classification_report(test_labels, test_pred))
-        print(confusion_matrix(test_labels, test_pred))
-        print(evaluate_classifier(confusion_matrix(test_labels, test_pred)))
-        metrics += evaluate_classifier(confusion_matrix(test_labels, test_pred))
-        i += 1
-    metrics /= args.k
-    print("Average Metrics:")
-    print("Accuracy: ", metrics[0])
-    print("Precision: ", metrics[1])
-    print("Recall: ", metrics[2])
-    print("F1: ", metrics[3])
-    print("Important Nodes: ", important_nodes)
+    classify(graphs, labels, args.alpha, args.a, args.p, args.k, solver, args.prefix)
+    
 
 if __name__ == "__main__":
     main()

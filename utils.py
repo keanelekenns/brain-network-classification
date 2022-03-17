@@ -15,7 +15,7 @@ def contrast_subgraph_overlap(subject_brain, contrast_subgraph):
         overlap_count - The number of edges in subject_brain having both endpoints in the
         contrast subgraph.
     """
-    brain_graph = np.triu(subject_brain)
+    brain_graph = np.triu(subject_brain, k=1)
     overlap_count = 0
     for source in contrast_subgraph:
         brain_dests = np.nonzero(brain_graph[source,:])[0]
@@ -32,7 +32,7 @@ def l1_norm(g1, g2):
     Returns:
         norm - The sum of the absolute value of g1 - g2.
     """
-    return np.sum(np.absolute(np.triu(g1 - g2)))
+    return np.sum(np.absolute(np.triu(g1 - g2, k=1)))
 
 def induce_subgraph(graph, nodes):
     """
@@ -83,7 +83,7 @@ def edge_weight_surplus(graph, node_set, alpha):
         edge_weight_surplus - A value indicating the edge weight surplus.
         This is given by f_alpha(node_set) above.
     """
-    g = np.triu(graph)
+    g = np.triu(graph, k=1)
     edge_weight_sum = induce_subgraph(g, node_set).sum()
     N = node_set.shape[0]
     return edge_weight_sum - alpha * (N * (N - 1)) / 2
