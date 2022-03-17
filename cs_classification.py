@@ -161,9 +161,15 @@ def main():
             print("IMPORTANT NODES", important_nodes)
             plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
                         train_labels,
-                        "plots/{}CS-P1-{}".format(args.prefix,i))
+                        "plots/{}CS-P1-{}-train".format(args.prefix,i))
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
             test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
+            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
+                        test_pred,
+                        "plots/{}CS-P1-{}-test-pred".format(args.prefix,i))
+            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
+                        test_labels,
+                        "plots/{}CS-P1-{}-test-true".format(args.prefix,i))
         else:
             diff = abs(summary_A - summary_B)
             
@@ -175,9 +181,15 @@ def main():
             print("IMPORTANT NODES", important_nodes)
             plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
                         train_labels,
-                        "plots/{}CS-P2-{}".format(args.prefix,i))
+                        "plots/{}CS-P2-{}-train".format(args.prefix,i))
             classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
             test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
+            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
+                        test_pred,
+                        "plots/{}CS-P2-{}-test-pred".format(args.prefix,i))
+            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
+                        test_labels,
+                        "plots/{}CS-P2-{}-test-true".format(args.prefix,i))
 
         print(classification_report(test_labels, test_pred))
         print(confusion_matrix(test_labels, test_pred))
