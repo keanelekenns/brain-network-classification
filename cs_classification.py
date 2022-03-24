@@ -5,6 +5,7 @@ import dense_subgraph
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
 from skopt.space import Real
 from skopt.utils import use_named_args
 from skopt import forest_minimize
@@ -206,7 +207,6 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
     for train_index, test_index in skf.split(graphs, labels):
         train_graphs, test_graphs = graphs[train_index], graphs[test_index]
         train_labels, test_labels = labels[train_index], labels[test_index]
-
         # Create and Write Summary Graphs
         summary_A = utils.summary_graph(train_graphs[np.where(train_labels == A_LABEL)])
         summary_B = utils.summary_graph(train_graphs[np.where(train_labels == B_LABEL)])
@@ -227,17 +227,19 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
                 important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
                                    set(cs_b_a).intersection(important_nodes[1])]
             # print("IMPORTANT NODES", important_nodes)
-            classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
-            test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
+            points = cs_p1_graphs_to_points(np.concatenate((train_graphs, test_graphs)), cs_a_b, cs_b_a)
+            points = StandardScaler().fit_transform(points)
+            train_points = points[:train_graphs.shape[0]]
+            test_points = points[train_graphs.shape[0]:]
+
+            classifier.fit(train_points, train_labels)
+            test_pred = classifier.predict(test_points)
             if(not disable_plotting):
-                plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
-                            train_labels,
+                plot_points(train_points, train_labels,
                             "plots/{}CS-P1-{}-train".format(prefix,i))
-                plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
-                            test_pred,
+                plot_points(test_points, test_pred,
                             "plots/{}CS-P1-{}-test-pred".format(prefix,i))
-                plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
-                            test_labels,
+                plot_points(test_points, test_labels,
                             "plots/{}CS-P1-{}-test-true".format(prefix,i))
         else:
             diff = abs(summary_A - summary_B)
@@ -249,17 +251,19 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
             else:
                 important_nodes = set(cs).intersection(important_nodes)
             # print("IMPORTANT NODES", important_nodes)
-            classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
-            test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
+            points = cs_p2_graphs_to_points(np.concatenate((train_graphs, test_graphs)), cs, summary_A, summary_B)
+            points = StandardScaler().fit_transform(points)
+            train_points = points[:train_graphs.shape[0]]
+            test_points = points[train_graphs.shape[0]:]
+
+            classifier.fit(train_points, train_labels)
+            test_pred = classifier.predict(test_points)
             if(not disable_plotting):
-                plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
-                            train_labels,
+                plot_points(train_points, train_labels,
                             "plots/{}CS-P2-{}-train".format(prefix,i))
-                plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
-                            test_pred,
+                plot_points(test_points, test_pred,
                             "plots/{}CS-P2-{}-test-pred".format(prefix,i))
-                plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
-                            test_labels,
+                plot_points(test_points, test_labels,
                             "plots/{}CS-P2-{}-test-true".format(prefix,i))
 
         # print(classification_report(test_labels, test_pred))
