@@ -4,7 +4,6 @@ import utils
 import dense_subgraph
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from skopt.space import Real
 from skopt.utils import use_named_args
@@ -86,6 +85,23 @@ def plot_points(points, labels, plotname):
     ax.scatter(x_vals_B, y_vals_B, c="#fcaa1b")
     plt.savefig(plotname)
 
+# TODO: This function needs work.
+def plot_decision_boundary(pred_func, X, y, plotname):
+    # Set min and max values and give it some padding
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    hx = (x_max - x_min)/100
+    hy = (y_max - y_min)/100
+    # Generate a grid of points with distance h between them
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, hx), np.arange(y_min, y_max, hy))
+    # Predict the function value for the whole grid
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    # Plot the contour and training examples
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
+    plt.savefig(plotname)
+
 def get_AB_labels(graphs_A, graphs_B):
     """
     Merge graph arrays together and return corresponding labels
@@ -121,7 +137,8 @@ def dsi(points_a, points_b):
     # DSI
     return (s_a + s_b)/2
 
-def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None, problem=1, solver=dense_subgraph.sdp):
+def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
+               problem=1, solver=dense_subgraph.sdp, disable_plotting=False):
     graphs_a = graphs[np.where(labels == A_LABEL)]
     graphs_b = graphs[np.where(labels == B_LABEL)]
     summary_A = utils.summary_graph(graphs_a)
@@ -147,8 +164,9 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None, problem=
             else:
                 initial_params = [initial_alpha, initial_alpha]
         result = forest_minimize(objective, space, n_calls=20, n_initial_points=5, x0=initial_params, random_state=23)
-        plot_convergence(result)
-        plt.savefig("plots/convergence.png")
+        if(not disable_plotting):
+            plot_convergence(result)
+            plt.savefig("plots/convergence.png")
         return result.x
 
     elif problem == 2:
@@ -161,15 +179,18 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None, problem=
         
         initial_params = [initial_alpha] if initial_alpha else None
         result = forest_minimize(objective, space, n_calls=20, n_initial_points=5, x0=initial_params, random_state=23)
-        plot_convergence(result)
-        plt.savefig("plots/convergence.png")
+        if(not disable_plotting):
+            plot_convergence(result)
+            plt.savefig("plots/convergence.png")
         return result.x[0]
     else:
         print("Cannot tune alpha - Incorrect value for problem formulation")
         return
     
 
-def classify(graphs, labels, alpha=0.05, alpha2=None, problem=1, num_folds=5, solver=dense_subgraph.sdp, prefix=""):
+def classify(graphs, labels, alpha=0.05, alpha2=None,
+             problem=1, num_folds=5, solver=dense_subgraph.sdp,
+             prefix="", disable_plotting=False):
     # Variables used for reporting at the end
 
     # Cumulative confusion matrix is needed because sometimes the test sample is not large enough
@@ -179,15 +200,7 @@ def classify(graphs, labels, alpha=0.05, alpha2=None, problem=1, num_folds=5, so
     # Keep track of the nodes that are common to all contrast subgraphs found
     important_nodes = []
 
-    # Reporting
-    print("Problem Formulation {} with".format(problem), end=" ")
-    if problem == 1:
-        print("A->B alpha = {}, B->A alpha = {}".format(alpha, alpha2 if alpha2 else alpha))
-    elif problem == 2:
-        print("alpha = {}".format(alpha))
-
     # k-fold cross validation
-    print("Performing {}-fold cross validation...".format(num_folds))
     skf = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state=23)
     i = 0
     for train_index, test_index in skf.split(graphs, labels):
@@ -214,17 +227,18 @@ def classify(graphs, labels, alpha=0.05, alpha2=None, problem=1, num_folds=5, so
                 important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
                                    set(cs_b_a).intersection(important_nodes[1])]
             # print("IMPORTANT NODES", important_nodes)
-            plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
-                        train_labels,
-                        "plots/{}CS-P1-{}-train".format(prefix,i))
             classifier.fit(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a), train_labels)
             test_pred = classifier.predict(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a))
-            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
-                        test_pred,
-                        "plots/{}CS-P1-{}-test-pred".format(prefix,i))
-            plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
-                        test_labels,
-                        "plots/{}CS-P1-{}-test-true".format(prefix,i))
+            if(not disable_plotting):
+                plot_points(cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a),
+                            train_labels,
+                            "plots/{}CS-P1-{}-train".format(prefix,i))
+                plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
+                            test_pred,
+                            "plots/{}CS-P1-{}-test-pred".format(prefix,i))
+                plot_points(cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a),
+                            test_labels,
+                            "plots/{}CS-P1-{}-test-true".format(prefix,i))
         else:
             diff = abs(summary_A - summary_B)
             
@@ -235,17 +249,18 @@ def classify(graphs, labels, alpha=0.05, alpha2=None, problem=1, num_folds=5, so
             else:
                 important_nodes = set(cs).intersection(important_nodes)
             # print("IMPORTANT NODES", important_nodes)
-            plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
-                        train_labels,
-                        "plots/{}CS-P2-{}-train".format(prefix,i))
             classifier.fit(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B), train_labels)
             test_pred = classifier.predict(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B))
-            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
-                        test_pred,
-                        "plots/{}CS-P2-{}-test-pred".format(prefix,i))
-            plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
-                        test_labels,
-                        "plots/{}CS-P2-{}-test-true".format(prefix,i))
+            if(not disable_plotting):
+                plot_points(cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B),
+                            train_labels,
+                            "plots/{}CS-P2-{}-train".format(prefix,i))
+                plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
+                            test_pred,
+                            "plots/{}CS-P2-{}-test-pred".format(prefix,i))
+                plot_points(cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B),
+                            test_labels,
+                            "plots/{}CS-P2-{}-test-true".format(prefix,i))
 
         # print(classification_report(test_labels, test_pred))
         # print(confusion_matrix(test_labels, test_pred))
@@ -263,19 +278,20 @@ def classify(graphs, labels, alpha=0.05, alpha2=None, problem=1, num_folds=5, so
 
 def main():
     parser = argparse.ArgumentParser(description='Graph Classification via Contrast Subgraphs')
-    parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files', type=str)
-    parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files', type=str)
+    parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
+    parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
     parser.add_argument('-a','--alpha', help='Penalty value for contrast subgraph size (varies from 0 to 1).\
                         If not provided, --tune-alpha is set to true.', type=float, metavar='a')
     parser.add_argument('-a2','--alpha2', help='A secondary alpha value to use for the contrast subgraph from B to A \
             (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs \
             if this is not provided.', type=float, metavar='a')
-    parser.add_argument("--tune-alpha", help='Whether or not to tune the alpha hyperparameter(s) before running the cross-validation (increases runtime).\
+    parser.add_argument('-t', '--tune-alpha', help='Whether or not to tune the alpha hyperparameter(s) before running the cross-validation (increases runtime).\
                         Note that alpha is automatically tuned if no alpha value is provided.', default=False, action="store_true")
     parser.add_argument('-p', '--problem', help='Problem Formulation (default: 1)', type=int, default = 1, choices={1,2})
-    parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5)', type=int, default = 5)
-    parser.add_argument('-pre','--prefix', help='A string to prepend to plot names', type=str, default="")
-    parser.add_argument('-s','--solver', help='Solver to use for finding a contrast subgraph (default: sdp)', type=str, default = "sdp", choices={"sdp","qp"})
+    parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
+    parser.add_argument('-s','--solver', help='Solver to use for finding a contrast subgraph (default: sdp).', type=str, default = "sdp", choices={"sdp","qp"})
+    parser.add_argument('-dp', '--disable-plotting', help='If present, plots will NOT be generated in the ./plots/ directory.', default=False, action="store_true")
+    parser.add_argument('-pre','--prefix', help='A string to prepend to plot names.', type=str, default="")
 
     args = parser.parse_args()
     alpha = args.alpha
@@ -300,12 +316,29 @@ def main():
     graphs, labels = get_AB_labels(graphs_A, graphs_B)
 
     if args.tune_alpha:
+        print("Tuning alpha value(s)...")
         if args.problem == 1:
-            alpha, alpha2 = tune_alpha(graphs, labels, alpha, alpha2, problem=args.problem, solver=solver)
+            alpha, alpha2 = tune_alpha( graphs, labels, alpha, alpha2,
+                                        problem=args.problem, solver=solver,
+                                        disable_plotting=args.disable_plotting)
         if args.problem == 2:
-            alpha = tune_alpha(graphs, labels, alpha, problem=args.problem, solver=solver)
+            alpha = tune_alpha( graphs, labels, alpha,
+                                problem=args.problem, solver=solver,
+                                disable_plotting=args.disable_plotting)
 
-    classify(graphs, labels, alpha, alpha2, args.problem, args.num_folds, solver, args.prefix)
+    # Reporting
+    print("\nProblem Formulation {} with".format(args.problem), end=" ")
+    if args.problem == 1:
+        print("A->B alpha = {}, B->A alpha = {}".format(alpha, alpha2 if alpha2 else alpha))
+    elif args.problem == 2:
+        print("alpha = {}".format(alpha))
+
+    print("Solver: ", args.solver.upper())
+
+    print("\nPerforming {}-fold cross validation...".format(args.num_folds))
+    classify(graphs, labels, alpha, alpha2,
+             args.problem, args.num_folds,
+             solver, args.prefix, args.disable_plotting)
     
 
 if __name__ == "__main__":
