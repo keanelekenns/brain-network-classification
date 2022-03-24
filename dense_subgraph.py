@@ -1,6 +1,6 @@
 # coding: utf-8
 import networkx as nx
-import oqc_sdp
+import lanciano
 import numpy as np
 import cvxpy as cp
 import cvxopt
@@ -148,7 +148,7 @@ def sdp(diff_net, alpha):
     """
     G = nx.from_numpy_array(diff_net)
     # print ("Loaded graph with %s nodes and %s edges" % (len(G), G.number_of_edges()))
-    w, d = oqc_sdp._make_coefficient_matrices(diff_net)
+    w, d = lanciano._make_coefficient_matrices(diff_net)
     P = np.matrix(w - alpha * d)
 
     n = len(P)
@@ -160,8 +160,8 @@ def sdp(diff_net, alpha):
                       constraints)
     prob.solve()
 
-    L = oqc_sdp.semidefinite_cholesky(X)
-    nodeset, obj, obj_rounded = oqc_sdp.random_projection_qp(L, P, diff_net, alpha, t=1000)
+    L = lanciano.semidefinite_cholesky(X)
+    nodeset, obj, obj_rounded = lanciano.charikar_projection(L, P, diff_net, alpha, t=1000)
     return localSearch(diff_net, nodeset, alpha)
 
 def qp(diff_net, alpha):

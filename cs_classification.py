@@ -211,7 +211,7 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
         summary_A = utils.summary_graph(train_graphs[np.where(train_labels == A_LABEL)])
         summary_B = utils.summary_graph(train_graphs[np.where(train_labels == B_LABEL)])
         
-        classifier = LinearSVC()
+        classifier = LinearSVC(random_state=23)
 
         # Get the difference network between the edge weights in group A and B
         if problem == 1:

@@ -38,53 +38,6 @@ def _make_coefficient_matrices(A, weight='weight'):
     return w, d
 
 
-def random_projection(L, A, W, D, alpha, t=100, return_x_rounded=False):
-    '''
-        Input:
-        L: Solution matrix from SDP
-        A: Adjacency matrix
-        alpha: parameter of OQC problem
-        
-        Returns:
-        S: Set of nodes obtained from rounding
-    '''
-    # random projection algorithm
-    # Repeat t times
-    count = 0
-    x_rounded = -1 * np.ones(len(L))
-    x_rounded[0] = 1
-    obj = 0
-    K = alpha * np.ones((len(L) - 1, len(L) - 1))
-    np.fill_diagonal(K, 0.)
-    K = np.matrix(K)
-    sum_weights = (A - K).sum()
-    #sum_weights = A.sum()
-    obj_orig = ((sum_weights + np.trace((W - (alpha * D)) * (L * L.T))) / 8.)
-
-    while (count < t):
-        r = np.matrix(np.random.normal(size=len(L)))
-        L_0_sign = np.array(np.sign(L[0] * r.T))[0][0]
-        x = np.sign(L * r.T) == L_0_sign
-        x = x * 1
-        x[x == 0] = -1
-        #o = (x[1:, :].T * (A - K) * x[1:, :]).tolist()[0][0]
-        o = ((sum_weights + x.T * (W - (alpha * D)) * x) / 8.).tolist()[0][0]
-        #o = ((sum_weights + x.T * W * x) / 8.).tolist()[0][0]
-        if o > obj:
-            x_rounded = x
-            obj = o
-        count += 1
-    # solution is the set of nodes with the same orientation
-    # as x_0
-    S = [n for n in xrange(1, len(L)) if x_rounded[n] == x_rounded[0]]
-    if return_x_rounded:
-        x_rounded = np.matrix(x_rounded)
-        if x_rounded.shape[0] != len(L):
-            x_rounded = x_rounded.T
-        return x_rounded
-    return S, obj_orig, obj
-
-
 def semidefinite_cholesky(X):
     # the Cholesky decomposition is defined for 
     # positive definite matrices. We have to add
@@ -201,38 +154,38 @@ def charikar_projection(L, P, A, alpha, t=100, return_x_rounded=False):
         #p_0 = ((1 - y_0) / 2.)
         #L_0_sign =  np.sign((np.random.uniform() - p_0) + eps)
         z = (L * r.T) / T
-        print ("|z_i| > 1:", z[np.abs(z) > 1].shape[1], np.abs(z).mean())
+        # print ("|z_i| > 1:", z[np.abs(z) > 1].shape[1], np.abs(z).mean())
         true_nodes = [0, 2, 6, 7, 10, 14, 18, 55, 42, 58]
         y = np.multiply(np.sign(z), np.minimum(np.abs(z), all_ones))
         p = (1 - y) / 2
-        print ("z vector:", z[true_nodes])
-        print ("y vector:", y[true_nodes])
-        print ("p vector:", p[true_nodes])
+        # print ("z vector:", z[true_nodes])
+        # print ("y vector:", y[true_nodes])
+        # print ("p vector:", p[true_nodes])
         assert(np.all(p >= 0) and np.all(p <= 1))
         unif_numbers = np.matrix(np.random.uniform(size = n)).T
         #x = np.sign(unif_numbers - p) == L_0_sign
         x = np.sign((unif_numbers - p) + eps)
-        print ("x vector:", x[true_nodes])
-        S = [(i - 1) for i in xrange(1, len(L)) if x[i] == x[0]]
+        # print ("x vector:", x[true_nodes])
+        S = [(i - 1) for i in range(1, len(L)) if x[i] == x[0]]
         #if len(S) < 20:
         #    print S
         #x = x * 1
         #x[x == 0] = -1
         #o = ((sum_weights + x.T * P * x) / 8.)[0, 0]
         o = ((x.T * P * x) / 8.)[0, 0]
-        print ("number of nodes in set:",  x[x == x[0, 0]].shape)
-        print (o)
+        # print ("number of nodes in set:",  x[x == x[0, 0]].shape)
+        # print (o)
         if o > obj + eps:
             x_rounded = x
             obj = o
-            print ("found a better solution")
+            # print ("found a better solution")
             #print obj
             #S = [(n - 1) for n in xrange(1, len(L)) if x_rounded[n] == x_rounded[0]]
             #print S
         count += 1
     # solution is the set of nodes with the same orientation
     # as x_0
-    S = [i for i in xrange(1, n) if x_rounded[i] == x_rounded[0]]
+    S = [i for i in range(1, n) if x_rounded[i] == x_rounded[0]]
     #x = -1 * np.ones(len(L))
     #x[true_nodes] = 1
     #x = np.matrix(x)
