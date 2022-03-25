@@ -1,5 +1,10 @@
 import numpy as np
 import os
+from scipy.stats import ks_2samp
+import matplotlib.pyplot as plt
+
+A_LABEL = "A"
+B_LABEL = "B"
 
 def contrast_subgraph_overlap(subject_brain, contrast_subgraph):
     """
@@ -87,3 +92,86 @@ def edge_weight_surplus(graph, node_set, alpha):
     edge_weight_sum = induce_subgraph(g, node_set).sum()
     N = node_set.shape[0]
     return edge_weight_sum - alpha * (N * (N - 1)) / 2
+
+def evaluate_classifier(confusion_matrix):
+    """
+    Inputs:
+        confusion_matrix - returned by confusion_matrix in sklearn
+    Returns:
+        Accuracy, Precision, Recall, F1 - Classifier metrics as defined by 
+        https://towardsdatascience.com/classification-performance-metrics-69c69ab03f17
+    """
+    TP = confusion_matrix[0,0]
+    TN = confusion_matrix[1,1]
+    FP = confusion_matrix[0,1]
+    FN = confusion_matrix[1,0]
+
+    accuracy = (TP + TN)/(TP + TN + FP + FN)
+    precision = TP/(TP + FP)
+    recall = TP/(TP + FN)
+    f1 = 2*precision*recall/(precision + recall)
+
+    return accuracy, precision, recall, f1
+
+def plot_points(points, labels, plotname):
+    x_vals = points[:,0]
+    y_vals = points[:,1]
+    x_vals_A, y_vals_A = x_vals[np.where(labels == A_LABEL)], y_vals[np.where(labels == A_LABEL)]
+    x_vals_B, y_vals_B = x_vals[np.where(labels == B_LABEL)], y_vals[np.where(labels == B_LABEL)]
+
+    fig, ax = plt.subplots()
+    ax.scatter(x_vals_A, y_vals_A, c="#5a7bfc")
+    ax.scatter(x_vals_B, y_vals_B, c="#fcaa1b")
+    plt.savefig(plotname)
+
+# TODO: This function needs work.
+def plot_decision_boundary(pred_func, X, y, plotname):
+    # Set min and max values and give it some padding
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    hx = (x_max - x_min)/100
+    hy = (y_max - y_min)/100
+    # Generate a grid of points with distance h between them
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, hx), np.arange(y_min, y_max, hy))
+    # Predict the function value for the whole grid
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    # Plot the contour and training examples
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
+    plt.savefig(plotname)
+
+def get_AB_labels(graphs_A, graphs_B):
+    """
+    Merge graph arrays together and return corresponding labels
+    Inputs:
+        graphs_A - A 3D numpy array representing a group of brain graphs in class A.
+        graphs_B - A 3D numpy array representing a group of brain graphs in class B.
+    Returns:
+        graphs - A 3D numpy array representing a group of brain graphs in classes A and B.
+        labels - A 1D numpy array holding class labels for each graph in graphs.
+    """
+    labels_A = [A_LABEL]*len(graphs_A)
+    labels_B = [B_LABEL]*len(graphs_B)
+    graphs = np.concatenate((graphs_A, graphs_B))
+    labels = np.array(labels_A + labels_B)
+    return graphs, labels
+
+def dsi(points_a, points_b):
+    # Based on https://arxiv.org/pdf/2109.05180.pdf
+
+    # Get pairwise euclidian distance between points in same class without repitition
+    d_a = np.linalg.norm(points_a[:,None,:] - points_a[None,:,:], axis=-1)
+    d_a = d_a[np.triu_indices(d_a.shape[0], k=1)]
+    d_b = np.linalg.norm(points_b[:,None,:] - points_b[None,:,:], axis=-1)
+    d_b = d_b[np.triu_indices(d_b.shape[0], k=1)]
+
+    # Get pairwise distances between classes
+    d_a_b = np.linalg.norm(points_a[:,None,:] - points_b[None,:,:], axis=-1).flatten()
+
+    # Get the KS statistic (distance between samples)
+    s_a = ks_2samp(d_a, d_a_b).statistic
+    s_b = ks_2samp(d_b, d_a_b).statistic
+
+    # DSI
+    return (s_a + s_b)/2

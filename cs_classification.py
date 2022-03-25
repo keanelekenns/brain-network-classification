@@ -10,31 +10,7 @@ from skopt.space import Real
 from skopt.utils import use_named_args
 from skopt import forest_minimize
 from skopt.plots import plot_convergence
-from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
-
-A_LABEL = "A"
-B_LABEL = "B"
-
-def evaluate_classifier(confusion_matrix):
-    """
-    Inputs:
-        confusion_matrix - returned by confusion_matrix in sklearn
-    Returns:
-        Accuracy, Precision, Recall, F1 - Classifier metrics as defined by 
-        https://towardsdatascience.com/classification-performance-metrics-69c69ab03f17
-    """
-    TP = confusion_matrix[0,0]
-    TN = confusion_matrix[1,1]
-    FP = confusion_matrix[0,1]
-    FN = confusion_matrix[1,0]
-
-    accuracy = (TP + TN)/(TP + TN + FP + FN)
-    precision = TP/(TP + FP)
-    recall = TP/(TP + FN)
-    f1 = 2*precision*recall/(precision + recall)
-
-    return accuracy, precision, recall, f1
 
 def cs_p1_graphs_to_points(graphs, cs_a_b, cs_b_a):
     """
@@ -75,73 +51,11 @@ def cs_p2_graphs_to_points(graphs, contrast_subgraph, summary_A, summary_B):
                                                 utils.induce_subgraph(summary_A, contrast_subgraph))]),
                              graphs)))
 
-def plot_points(points, labels, plotname):
-    x_vals = points[:,0]
-    y_vals = points[:,1]
-    x_vals_A, y_vals_A = x_vals[np.where(labels == A_LABEL)], y_vals[np.where(labels == A_LABEL)]
-    x_vals_B, y_vals_B = x_vals[np.where(labels == B_LABEL)], y_vals[np.where(labels == B_LABEL)]
-
-    fig, ax = plt.subplots()
-    ax.scatter(x_vals_A, y_vals_A, c="#5a7bfc")
-    ax.scatter(x_vals_B, y_vals_B, c="#fcaa1b")
-    plt.savefig(plotname)
-
-# TODO: This function needs work.
-def plot_decision_boundary(pred_func, X, y, plotname):
-    # Set min and max values and give it some padding
-    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-    hx = (x_max - x_min)/100
-    hy = (y_max - y_min)/100
-    # Generate a grid of points with distance h between them
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, hx), np.arange(y_min, y_max, hy))
-    # Predict the function value for the whole grid
-    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-    # Plot the contour and training examples
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
-    plt.savefig(plotname)
-
-def get_AB_labels(graphs_A, graphs_B):
-    """
-    Merge graph arrays together and return corresponding labels
-    Inputs:
-        graphs_A - A 3D numpy array representing a group of brain graphs in class A.
-        graphs_B - A 3D numpy array representing a group of brain graphs in class B.
-    Returns:
-        graphs - A 3D numpy array representing a group of brain graphs in classes A and B.
-        labels - A 1D numpy array holding class labels for each graph in graphs.
-    """
-    labels_A = [A_LABEL]*len(graphs_A)
-    labels_B = [B_LABEL]*len(graphs_B)
-    graphs = np.concatenate((graphs_A, graphs_B))
-    labels = np.array(labels_A + labels_B)
-    return graphs, labels
-
-def dsi(points_a, points_b):
-    # Based on https://arxiv.org/pdf/2109.05180.pdf
-
-    # Get pairwise euclidian distance between points in same class without repitition
-    d_a = np.linalg.norm(points_a[:,None,:] - points_a[None,:,:], axis=-1)
-    d_a = d_a[np.triu_indices(d_a.shape[0], k=1)]
-    d_b = np.linalg.norm(points_b[:,None,:] - points_b[None,:,:], axis=-1)
-    d_b = d_b[np.triu_indices(d_b.shape[0], k=1)]
-
-    # Get pairwise distances between classes
-    d_a_b = np.linalg.norm(points_a[:,None,:] - points_b[None,:,:], axis=-1).flatten()
-
-    # Get the KS statistic (distance between samples)
-    s_a = ks_2samp(d_a, d_a_b).statistic
-    s_b = ks_2samp(d_b, d_a_b).statistic
-
-    # DSI
-    return (s_a + s_b)/2
 
 def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
                problem=1, solver=dense_subgraph.sdp, disable_plotting=False):
-    graphs_a = graphs[np.where(labels == A_LABEL)]
-    graphs_b = graphs[np.where(labels == B_LABEL)]
+    graphs_a = graphs[np.where(labels == utils.A_LABEL)]
+    graphs_b = graphs[np.where(labels == utils.B_LABEL)]
     summary_A = utils.summary_graph(graphs_a)
     summary_B = utils.summary_graph(graphs_b)
     diff_a_b = summary_A - summary_B
@@ -157,7 +71,7 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
         def objective(alpha, alpha2):
             cs_a_b = solver(diff_a_b, alpha)
             cs_b_a = solver(diff_b_a, alpha2)
-            return -dsi(cs_p1_graphs_to_points(graphs_a, cs_a_b, cs_b_a),
+            return -utils.dsi(cs_p1_graphs_to_points(graphs_a, cs_a_b, cs_b_a),
                         cs_p1_graphs_to_points(graphs_b, cs_a_b, cs_b_a))
         if initial_alpha:
             if initial_alpha2:
@@ -175,7 +89,7 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
         @use_named_args(space)
         def objective(alpha):
             cs = solver(diff, alpha)
-            return -dsi(cs_p2_graphs_to_points(graphs_a, cs, summary_A, summary_B),
+            return -utils.dsi(cs_p2_graphs_to_points(graphs_a, cs, summary_A, summary_B),
                         cs_p2_graphs_to_points(graphs_b, cs, summary_A, summary_B))
         
         initial_params = [initial_alpha] if initial_alpha else None
@@ -208,8 +122,8 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
         train_graphs, test_graphs = graphs[train_index], graphs[test_index]
         train_labels, test_labels = labels[train_index], labels[test_index]
         # Create and Write Summary Graphs
-        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == A_LABEL)])
-        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == B_LABEL)])
+        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == utils.A_LABEL)])
+        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == utils.B_LABEL)])
         
         classifier = LinearSVC(random_state=23)
 
@@ -235,11 +149,11 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
             classifier.fit(train_points, train_labels)
             test_pred = classifier.predict(test_points)
             if(not disable_plotting):
-                plot_points(train_points, train_labels,
+                utils.plot_points(train_points, train_labels,
                             "plots/{}CS-P1-{}-train".format(prefix,i))
-                plot_points(test_points, test_pred,
+                utils.plot_points(test_points, test_pred,
                             "plots/{}CS-P1-{}-test-pred".format(prefix,i))
-                plot_points(test_points, test_labels,
+                utils.plot_points(test_points, test_labels,
                             "plots/{}CS-P1-{}-test-true".format(prefix,i))
         else:
             diff = abs(summary_A - summary_B)
@@ -259,11 +173,11 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
             classifier.fit(train_points, train_labels)
             test_pred = classifier.predict(test_points)
             if(not disable_plotting):
-                plot_points(train_points, train_labels,
+                utils.plot_points(train_points, train_labels,
                             "plots/{}CS-P2-{}-train".format(prefix,i))
-                plot_points(test_points, test_pred,
+                utils.plot_points(test_points, test_pred,
                             "plots/{}CS-P2-{}-test-pred".format(prefix,i))
-                plot_points(test_points, test_labels,
+                utils.plot_points(test_points, test_labels,
                             "plots/{}CS-P2-{}-test-true".format(prefix,i))
 
         # print(classification_report(test_labels, test_pred))
@@ -276,7 +190,7 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
     print("\nMetrics using cumulative confusion matrix:")
     print(cumulative_confusion_matrix)
     print("Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}"
-            .format(*evaluate_classifier(cumulative_confusion_matrix)))
+            .format(*utils.evaluate_classifier(cumulative_confusion_matrix)))
 
     print("\nImportant Nodes: ", important_nodes)
 
@@ -317,7 +231,7 @@ def main():
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
-    graphs, labels = get_AB_labels(graphs_A, graphs_B)
+    graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
 
     if args.tune_alpha:
         print("Tuning alpha value(s)...")
