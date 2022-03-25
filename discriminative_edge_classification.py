@@ -1,8 +1,6 @@
-from typing import ValuesView
 import numpy as np
 import argparse
 import utils
-import dense_subgraph
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
@@ -24,7 +22,7 @@ def graphs_to_points(graphs, diff_net, top_edge_indices, bottom_edge_indices, to
                                           np.dot(diff_net[bottom_edge_indices], graph[bottom_edge_indices])/bottom_sum]),
                                     graphs)))
 
-def classify(graphs, labels, num_edges, num_folds=5,
+def classify(graphs, labels, num_edges, num_folds=5, learn=False,
              prefix="", disable_plotting=False):
     # Variables used for reporting at the end
 
@@ -94,7 +92,7 @@ def classify(graphs, labels, num_edges, num_folds=5,
     print("Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}"
             .format(*utils.evaluate_classifier(cumulative_confusion_matrix)))
 
-    print("\nImportant Nodes: ", important_edges)
+    print("\nImportant Edges: ", important_edges)
 
 def main():
     parser = argparse.ArgumentParser(description='Graph Classification using Discriminative Edges')
@@ -102,6 +100,7 @@ def main():
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
     parser.add_argument('-n','--num-edges', help='Number of positive and negative edges to use for classification (default: 25).', type=int, default = 25)
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
+    parser.add_argument('-l', '--learn', help='If present, important edges from previous folds will be intersected with each new set of important edges.', default=False, action="store_true")
     parser.add_argument('-dp', '--disable-plotting', help='If present, plots will NOT be generated in the ./plots/ directory.', default=False, action="store_true")
     parser.add_argument('-pre','--prefix', help='A string to prepend to plot names.', type=str, default="")
 
@@ -114,7 +113,7 @@ def main():
     graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
 
     print("\nPerforming {}-fold cross validation...".format(args.num_folds))
-    classify(graphs, labels, args.num_edges, args.num_folds,
+    classify(graphs, labels, args.num_edges, args.num_folds, args.learn,
              args.prefix, args.disable_plotting)
     
 

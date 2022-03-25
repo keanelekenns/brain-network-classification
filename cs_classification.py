@@ -104,7 +104,7 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
     
 
 def classify(graphs, labels, alpha=0.05, alpha2=None,
-             problem=1, num_folds=5, solver=dense_subgraph.sdp,
+             problem=1, num_folds=5, learn=False, solver=dense_subgraph.sdp,
              prefix="", disable_plotting=False):
     # Variables used for reporting at the end
 
@@ -141,6 +141,9 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
                 important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
                                    set(cs_b_a).intersection(important_nodes[1])]
             # print("IMPORTANT NODES", important_nodes)
+            if learn:
+                cs_a_b = np.array(list(important_nodes[0]), dtype=int)
+                cs_b_a = np.array(list(important_nodes[1]), dtype=int)
             points = cs_p1_graphs_to_points(np.concatenate((train_graphs, test_graphs)), cs_a_b, cs_b_a)
             points = StandardScaler().fit_transform(points)
             train_points = points[:train_graphs.shape[0]]
@@ -165,6 +168,8 @@ def classify(graphs, labels, alpha=0.05, alpha2=None,
             else:
                 important_nodes = set(cs).intersection(important_nodes)
             # print("IMPORTANT NODES", important_nodes)
+            if learn:
+                cs = np.array(list(important_nodes), dtype=int)
             points = cs_p2_graphs_to_points(np.concatenate((train_graphs, test_graphs)), cs, summary_A, summary_B)
             points = StandardScaler().fit_transform(points)
             train_points = points[:train_graphs.shape[0]]
@@ -208,6 +213,7 @@ def main():
     parser.add_argument('-p', '--problem', help='Problem Formulation (default: 1)', type=int, default = 1, choices={1,2})
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-s','--solver', help='Solver to use for finding a contrast subgraph (default: sdp).', type=str, default = "sdp", choices={"sdp","qp"})
+    parser.add_argument('-l', '--learn', help='If present, contrast subgraphs from previous folds will be intersected with each new contrast subgraph.', default=False, action="store_true")
     parser.add_argument('-dp', '--disable-plotting', help='If present, plots will NOT be generated in the ./plots/ directory.', default=False, action="store_true")
     parser.add_argument('-pre','--prefix', help='A string to prepend to plot names.', type=str, default="")
 
@@ -255,7 +261,7 @@ def main():
 
     print("\nPerforming {}-fold cross validation...".format(args.num_folds))
     classify(graphs, labels, alpha, alpha2,
-             args.problem, args.num_folds,
+             args.problem, args.num_folds, args.learn,
              solver, args.prefix, args.disable_plotting)
     
 
