@@ -71,13 +71,8 @@ def main():
 
     graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
 
-    num_folds = args.num_folds
-    if args.leave_one_out:
-        num_folds = len(labels)
-
-    classification.classify(graphs, labels, num_folds,
-                            discriminative_edges_graphs_to_points,
-                            args.plot, args.plot_prefix,
+    classification.classify(graphs, labels, discriminative_edges_graphs_to_points,
+                            args.num_folds, args.leave_one_out, args.plot, args.plot_prefix,
                             random_state=23, num_edges=args.num_edges)
     
 

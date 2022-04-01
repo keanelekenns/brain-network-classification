@@ -3,10 +3,6 @@ import argparse
 import utils
 import dense_subgraph
 import classification
-from sklearn.svm import LinearSVC
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import confusion_matrix
-from sklearn.preprocessing import StandardScaler
 from skopt.space import Real
 from skopt.utils import use_named_args
 from skopt import forest_minimize
@@ -210,10 +206,9 @@ def main():
         print("alpha = {}".format(alpha))
 
     print("Solver: ", args.solver.upper())
-    classification.classify(graphs, labels, num_folds,
-                            contrast_subgraph_graphs_to_points,
-                            args.plot, args.plot_prefix, alpha=alpha, alpha2=alpha2,
-                            problem=args.problem, solver=solver)
+    classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
+                            num_folds, args.leave_one_out, args.plot, args.plot_prefix,
+                            alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver)
     
 
 if __name__ == "__main__":
