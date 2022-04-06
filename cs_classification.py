@@ -107,6 +107,8 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
     summary_B = utils.summary_graph(train_graphs[np.where(train_labels == utils.B_LABEL)])
 
     nodes = np.arange(summary_A.shape[0])
+    train_points = np.zeros((train_graphs.shape[0], 2))
+    test_points = np.zeros((test_graphs.shape[0], 2))
     # Get the difference network between the edge weights in group A and B
     if problem == 1:
         node_mask_a_b = np.array([True]*nodes.shape[0])
@@ -119,25 +121,23 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
         for i in range(num_cs):
             masked_diff_a_b = utils.induce_subgraph(diff_a_b, nodes[node_mask_a_b])
             masked_diff_b_a = utils.induce_subgraph(diff_b_a, nodes[node_mask_b_a])
-            cs_a_b = np.concatenate((cs_a_b, nodes[node_mask_a_b][solver(masked_diff_a_b, alpha)]))
-            cs_b_a = np.concatenate((cs_b_a, nodes[node_mask_b_a][solver(masked_diff_b_a, alpha2 if alpha2 else alpha)]))
-            print("CS #{}: A-B {}\n B-A {}".format(i, cs_a_b, cs_b_a))
+            cs_a_b = nodes[node_mask_a_b][solver(masked_diff_a_b, alpha)]
+            cs_b_a = nodes[node_mask_b_a][solver(masked_diff_b_a, alpha2 if alpha2 else alpha)]
             # Do not consider the previously found contrast subgraph nodes for future contrast subgraphs
             node_mask_a_b[cs_a_b] = False
             node_mask_b_a[cs_b_a] = False
-        # print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
 
-        # Right now we don't do anything with the important nodes, but
-        # We might generalize a method of aggregating them across calls
-        # by classification.classify
-        # if not important_nodes: #Check if list is empty
-        #     important_nodes = [set(cs_a_b), set(cs_b_a)]
-        # else:
-        #     important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
-        #                         set(cs_b_a).intersection(important_nodes[1])]
-        # print("IMPORTANT NODES", important_nodes)
-        train_points = cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a)
-        test_points = cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a)
+            train_points += cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a)
+            test_points += cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a)
+            if len(nodes[node_mask_a_b]) == 0:
+                print("Every node in the graph is included by a contrast subgraph(A->B)!\n\
+                    Stopped at Contrast Subgraph {}.".format(i+1))
+                break
+            if len(nodes[node_mask_b_a]) == 0:
+                print("Every node in the graph is included by a contrast subgraph (B->A)!\n\
+                    Stopped at Contrast Subgraph {}.".format(i+1))
+                break
+
         return train_points, test_points
     else:
         node_mask = np.array([True]*nodes.shape[0])
@@ -146,17 +146,16 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
         
         for i in range(num_cs):
             masked_diff = utils.induce_subgraph(diff, nodes[node_mask])
-            cs = np.concatenate((cs, nodes[node_mask][solver(masked_diff, alpha)]))
-            print("CS #{}: {}".format(i, cs))
+            cs = nodes[node_mask][solver(masked_diff, alpha)]
             node_mask[cs] = False
-        # print("CONTRAST SUBGRAPH\n",cs)
-        # if not important_nodes: #Check if list is empty
-        #     important_nodes = set(cs)
-        # else:
-        #     important_nodes = set(cs).intersection(important_nodes)
-        # print("IMPORTANT NODES", important_nodes)
-        train_points = cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B)
-        test_points = cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B)
+
+            train_points += cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B)
+            test_points += cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B)
+            if len(nodes[node_mask]) == 0:
+                print("Every node in the graph is included by a contrast subgraph!\n\
+                    Stopped at Contrast Subgraph {}.".format(i+1))
+                break
+        
         return train_points, test_points
 
 def main():
@@ -227,8 +226,9 @@ def main():
         print("alpha = {}".format(alpha))
 
     print("Solver: ", args.solver.upper())
+    print("Number of Contrast Subgraphs: {}".format(args.num_contrast_subgraphs))
     classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
-                            num_folds, args.leave_one_out, args.plot, args.plot_prefix,
+                            num_folds, args.leave_one_out, args.plot, args.plot_prefix, random_state=23,
                             alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver,
                             num_cs=args.num_contrast_subgraphs)
     

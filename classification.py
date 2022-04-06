@@ -85,7 +85,8 @@ def main():
     print("testing...")
     inputs = np.array([[1,1], [2,2], [3,3], [4,4], [5,5], [6,6]])
     labels = np.array([0, 1, 0, 0, 1, 0])
-    classify(inputs, labels, 6, to_points, plot=False,bob=34, judy=12)
+    #outdated call
+    #classify(inputs, labels, 6, to_points, plot=False,bob=34, judy=12)
     
 
 if __name__ == "__main__":
