@@ -43,9 +43,9 @@ def cs_p2_graphs_to_points(graphs, contrast_subgraph, summary_A, summary_B):
     return np.array(list(map(lambda graph:
                                 np.array([
                                     utils.l1_norm(utils.induce_subgraph(graph, contrast_subgraph),
-                                                utils.induce_subgraph(summary_B, contrast_subgraph)),
+                                                utils.induce_subgraph(summary_A, contrast_subgraph)),
                                     utils.l1_norm(utils.induce_subgraph(graph, contrast_subgraph),
-                                                utils.induce_subgraph(summary_A, contrast_subgraph))]),
+                                                utils.induce_subgraph(summary_B, contrast_subgraph))]),
                              graphs)))
 
 
@@ -101,41 +101,59 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
     
 
 def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, alpha=0.05, alpha2=None,
-                                        problem=1, solver=dense_subgraph.sdp, important_nodes=[]):
+                                        problem=1, solver=dense_subgraph.sdp, important_nodes=[], num_cs=1):
     # Create and Write Summary Graphs
     summary_A = utils.summary_graph(train_graphs[np.where(train_labels == utils.A_LABEL)])
     summary_B = utils.summary_graph(train_graphs[np.where(train_labels == utils.B_LABEL)])
 
+    nodes = np.arange(summary_A.shape[0])
     # Get the difference network between the edge weights in group A and B
     if problem == 1:
+        node_mask_a_b = np.array([True]*nodes.shape[0])
+        node_mask_b_a = np.array([True]*nodes.shape[0])
+        cs_a_b = np.array([], dtype=int)
+        cs_b_a = np.array([], dtype=int)
         diff_a_b = summary_A - summary_B
         diff_b_a = summary_B - summary_A
 
-        cs_a_b = solver(diff_a_b, alpha)
-        cs_b_a = solver(diff_b_a, alpha2 if alpha2 else alpha)
+        for i in range(num_cs):
+            masked_diff_a_b = utils.induce_subgraph(diff_a_b, nodes[node_mask_a_b])
+            masked_diff_b_a = utils.induce_subgraph(diff_b_a, nodes[node_mask_b_a])
+            cs_a_b = np.concatenate((cs_a_b, nodes[node_mask_a_b][solver(masked_diff_a_b, alpha)]))
+            cs_b_a = np.concatenate((cs_b_a, nodes[node_mask_b_a][solver(masked_diff_b_a, alpha2 if alpha2 else alpha)]))
+            print("CS #{}: A-B {}\n B-A {}".format(i, cs_a_b, cs_b_a))
+            # Do not consider the previously found contrast subgraph nodes for future contrast subgraphs
+            node_mask_a_b[cs_a_b] = False
+            node_mask_b_a[cs_b_a] = False
         # print("CONTRAST SUBGRAPHS\n",cs_a_b, cs_b_a)
 
         # Right now we don't do anything with the important nodes, but
         # We might generalize a method of aggregating them across calls
         # by classification.classify
-        if not important_nodes: #Check if list is empty
-            important_nodes = [set(cs_a_b), set(cs_b_a)]
-        else:
-            important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
-                                set(cs_b_a).intersection(important_nodes[1])]
+        # if not important_nodes: #Check if list is empty
+        #     important_nodes = [set(cs_a_b), set(cs_b_a)]
+        # else:
+        #     important_nodes = [set(cs_a_b).intersection(important_nodes[0]),
+        #                         set(cs_b_a).intersection(important_nodes[1])]
         # print("IMPORTANT NODES", important_nodes)
         train_points = cs_p1_graphs_to_points(train_graphs, cs_a_b, cs_b_a)
         test_points = cs_p1_graphs_to_points(test_graphs, cs_a_b, cs_b_a)
         return train_points, test_points
     else:
+        node_mask = np.array([True]*nodes.shape[0])
+        cs = np.array([], dtype=int)
         diff = abs(summary_A - summary_B)
         
-        cs = solver(diff, alpha)
+        for i in range(num_cs):
+            masked_diff = utils.induce_subgraph(diff, nodes[node_mask])
+            cs = np.concatenate((cs, nodes[node_mask][solver(masked_diff, alpha)]))
+            print("CS #{}: {}".format(i, cs))
+            node_mask[cs] = False
         # print("CONTRAST SUBGRAPH\n",cs)
-        if not important_nodes: #Check if list is empty
-            important_nodes = set(cs)
-        else:
-            important_nodes = set(cs).intersection(important_nodes)
+        # if not important_nodes: #Check if list is empty
+        #     important_nodes = set(cs)
+        # else:
+        #     important_nodes = set(cs).intersection(important_nodes)
         # print("IMPORTANT NODES", important_nodes)
         train_points = cs_p2_graphs_to_points(train_graphs, cs, summary_A, summary_B)
         test_points = cs_p2_graphs_to_points(test_graphs, cs, summary_A, summary_B)
@@ -158,6 +176,9 @@ def main():
     parser.add_argument('-loo', '--leave-one-out', help='If present, perform leave-one-out cross validation (can be computationally expensive). This will cause num-folds to be ignored.', default=False, action="store_true")
     parser.add_argument('--plot', help='If present, plots will be generated in the ./plots/ directory.', default=False, action="store_true")
     parser.add_argument('-pre','--plot-prefix', help='A string to prepend to plot names.', type=str, default="")
+    parser.add_argument('-cs','--num-contrast-subgraphs', help='Number of non-overlapping contrast subgraphs to use (default: 1).\
+        When a cs is found, its nodes are removed from the difference network and the next cs is found.\
+        At the end, the contrast subgraphs are concatenated and used together.', type=int, default = 1)
 
     args = parser.parse_args()
     alpha = args.alpha
@@ -208,7 +229,8 @@ def main():
     print("Solver: ", args.solver.upper())
     classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
                             num_folds, args.leave_one_out, args.plot, args.plot_prefix,
-                            alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver)
+                            alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver,
+                            num_cs=args.num_contrast_subgraphs)
     
 
 if __name__ == "__main__":
