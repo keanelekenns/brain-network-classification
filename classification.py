@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 def classify(inputs, labels, inputs_to_points, num_folds=5,
                 leave_one_out=False, plot=False,
-                plot_prefix="", random_state=None, **kwargs):
+                plot_prefix="", random_state=23, **kwargs):
     # Cumulative confusion matrix is used to report on classifier metrics over all of the k folds.
     cumulative_confusion_matrix = np.zeros((2,2))
     classifier = LinearSVC(random_state=random_state)
@@ -71,8 +71,10 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
 
     print("\nMetrics using cumulative confusion matrix:")
     print(cumulative_confusion_matrix)
+    accuracy, precision, recall, f1 = utils.evaluate_classifier(cumulative_confusion_matrix)
     print("Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}"
-            .format(*utils.evaluate_classifier(cumulative_confusion_matrix)))
+            .format(accuracy, precision, recall, f1))
+    return accuracy
 
 #==================== TEST EXAMPLE ======================#
     

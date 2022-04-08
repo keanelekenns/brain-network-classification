@@ -49,7 +49,7 @@ def cs_p2_graphs_to_points(graphs, contrast_subgraph, summary_A, summary_B):
                              graphs)))
 
 
-def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
+def tune_alpha_dsi(graphs, labels, initial_alpha=None, initial_alpha2=None,
                problem=1, solver=dense_subgraph.sdp, plot=False):
     graphs_a = graphs[np.where(labels == utils.A_LABEL)]
     graphs_b = graphs[np.where(labels == utils.B_LABEL)]
@@ -88,6 +88,46 @@ def tune_alpha(graphs, labels, initial_alpha=None, initial_alpha2=None,
             cs = solver(diff, alpha)
             return -utils.dsi(cs_p2_graphs_to_points(graphs_a, cs, summary_A, summary_B),
                         cs_p2_graphs_to_points(graphs_b, cs, summary_A, summary_B))
+        
+        initial_params = [initial_alpha] if initial_alpha else None
+        result = forest_minimize(objective, space, n_calls=20, n_initial_points=5, x0=initial_params, random_state=23)
+        if(plot):
+            plot_convergence(result)
+            plt.savefig("plots/convergence.png")
+        return result.x[0]
+    else:
+        print("Cannot tune alpha - Incorrect value for problem formulation")
+        return
+
+def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
+                        problem=1, solver=dense_subgraph.sdp, plot=False, num_cs=1):
+    initial_params = None
+
+    if problem == 1:
+        space = [Real(name='alpha', low=0.0, high=0.5),
+                 Real(name='alpha2', low=0.0, high=0.5)]
+        @use_named_args(space)
+        def objective(alpha, alpha2):
+            return -classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
+                                            alpha=alpha, alpha2=alpha2, problem=1, solver=solver,
+                                            num_cs=num_cs)
+        if initial_alpha:
+            if initial_alpha2:
+                initial_params = [initial_alpha, initial_alpha2]
+            else:
+                initial_params = [initial_alpha, initial_alpha]
+        result = forest_minimize(objective, space, n_calls=20, n_initial_points=5, x0=initial_params, random_state=23)
+        if(plot):
+            plot_convergence(result)
+            plt.savefig("plots/convergence.png")
+        return result.x
+
+    elif problem == 2:
+        space = [Real(name='alpha', low=0.0, high=0.5)]
+        @use_named_args(space)
+        def objective(alpha):
+            return -classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
+                                            alpha=alpha, problem=2, solver=solver, num_cs=num_cs)
         
         initial_params = [initial_alpha] if initial_alpha else None
         result = forest_minimize(objective, space, n_calls=20, n_initial_points=5, x0=initial_params, random_state=23)
@@ -210,13 +250,13 @@ def main():
     if args.tune_alpha:
         print("Tuning alpha value(s)...")
         if args.problem == 1:
-            alpha, alpha2 = tune_alpha( graphs, labels, alpha, alpha2,
+            alpha, alpha2 = tune_alpha_accuracy( graphs, labels, alpha, alpha2,
                                         problem=args.problem, solver=solver,
-                                        plot=args.plot)
+                                        plot=args.plot, num_cs=args.num_contrast_subgraphs)
         if args.problem == 2:
-            alpha = tune_alpha( graphs, labels, alpha,
+            alpha = tune_alpha_accuracy( graphs, labels, alpha,
                                 problem=args.problem, solver=solver,
-                                plot=args.plot)
+                                plot=args.plot, num_cs=args.num_contrast_subgraphs)
 
     # Reporting
     print("\nProblem Formulation {} with".format(args.problem), end=" ")
