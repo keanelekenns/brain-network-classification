@@ -235,8 +235,8 @@ def main():
     elif args.solver == "qp":
         solver = dense_subgraph.qp
     
-    print("Performing Contrast Subgraph Classification on Brain Networks\n")
-
+    print("\nPerforming Contrast Subgraph Classification on Brain Networks")
+    print("{} -> Class A\n{} -> Class B".format(args.A_dir, args.B_dir))
     # Read brain graph files into numpy arrays
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)

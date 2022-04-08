@@ -138,7 +138,7 @@ def charikar_projection(L, P, A, alpha, t=100, return_x_rounded=False):
     x_rounded[0] = 1
     obj = 0
     n = len(L)
-    sum_weights = A.sum() - alpha * (len(A) * (len(A) - 1))
+    #sum_weights = A.sum() - alpha * (len(A) * (len(A) - 1))
     #obj_orig = (sum_weights + np.trace(P * (L * L.T))) / 8.
     obj_orig = (np.trace(P * (L * L.T))) / 8.
     T = 2 * np.sqrt(np.log2(n))
@@ -155,7 +155,7 @@ def charikar_projection(L, P, A, alpha, t=100, return_x_rounded=False):
         #L_0_sign =  np.sign((np.random.uniform() - p_0) + eps)
         z = (L * r.T) / T
         # print ("|z_i| > 1:", z[np.abs(z) > 1].shape[1], np.abs(z).mean())
-        true_nodes = [0, 2, 6, 7, 10, 14, 18, 55, 42, 58]
+        #true_nodes = [0, 2, 6, 7, 10, 14, 18, 55, 42, 58]
         y = np.multiply(np.sign(z), np.minimum(np.abs(z), all_ones))
         p = (1 - y) / 2
         # print ("z vector:", z[true_nodes])
