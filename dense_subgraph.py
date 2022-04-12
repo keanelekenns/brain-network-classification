@@ -1,5 +1,4 @@
 # coding: utf-8
-import networkx as nx
 import lanciano
 import numpy as np
 import cvxpy as cp
