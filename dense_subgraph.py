@@ -5,7 +5,7 @@ import cvxpy as cp
 import cvxopt
 import utils
 
-def localSearch_Tsourakakis(graph, node_set, alpha, max_iterations=10):
+def localSearch_Tsourakakis(graph, node_set, alpha, max_iterations=100):
     """
     The Tsourakakis implementation of localSearch (with modification from Cadena).
     Given a weighted graph and a set of nodes, attempt to build a locally
