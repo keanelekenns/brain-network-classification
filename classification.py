@@ -36,11 +36,11 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
         # Scale the returned points
         points = np.concatenate((train_points, test_points))
         points = StandardScaler().fit_transform(points)
-        train_points = points[:train_points.shape[0]]
-        test_points = points[train_points.shape[0]:]
+        train_points_scaled = points[:train_points.shape[0]]
+        test_points_scaled = points[train_points.shape[0]:]
 
-        classifier.fit(train_points, train_labels)
-        test_pred = classifier.predict(test_points)
+        classifier.fit(train_points_scaled, train_labels)
+        test_pred = classifier.predict(test_points_scaled)
 
         if leave_one_out:
             loo_points += [test_points[0]]
