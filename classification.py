@@ -63,9 +63,10 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
         loo_points = np.array(loo_points)
         loo_predictions = np.array(loo_predictions)
         loo_labels = np.array(loo_labels)
-        utils.plot_points(loo_points, loo_predictions,
+        if plot:
+            utils.plot_points(loo_points, loo_predictions,
                     "plots/{}-{}-LOO-predictions".format(plot_prefix,i))
-        utils.plot_points(loo_points, loo_labels,
+            utils.plot_points(loo_points, loo_labels,
                     "plots/{}-{}-LOO-labels".format(plot_prefix,i))
         cumulative_confusion_matrix = confusion_matrix(loo_labels, loo_predictions)
 
