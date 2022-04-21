@@ -100,8 +100,9 @@ def tune_alpha_dsi(graphs, labels, initial_alpha=None, initial_alpha2=None,
         return
 
 def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
-                        problem=1, solver=dense_subgraph.sdp, plot=False, prefix="", num_cs=1):
+                        problem=1, solver=dense_subgraph.sdp, prefix="", num_cs=1):
     initial_params = None
+    plot = bool(prefix)
 
     if solver == dense_subgraph.sdp:
         n_calls = 10
@@ -111,8 +112,8 @@ def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
         num_folds=5
 
     if problem == 1:
-        space = [Real(name='alpha', low=0.0, high=0.4),
-                 Real(name='alpha2', low=0.0, high=0.4)]
+        space = [Real(name='alpha', low=0.0, high=0.3),
+                 Real(name='alpha2', low=0.0, high=0.3)]
         @use_named_args(space)
         def objective(alpha, alpha2):
             return -classification.classify(graphs, labels, contrast_subgraph_graphs_to_points, num_folds=num_folds,
@@ -220,8 +221,7 @@ def main():
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-s','--solver', help='Solver to use for finding a contrast subgraph (default: sdp).', type=str, default = "sdp", choices={"sdp","qp"})
     parser.add_argument('-loo', '--leave-one-out', help='If present, perform leave-one-out cross validation (can be computationally expensive). This will cause num-folds to be ignored.', default=False, action="store_true")
-    parser.add_argument('--plot', help='If present, plots will be generated in the ./plots/ directory.', default=False, action="store_true")
-    parser.add_argument('-pre','--plot-prefix', help='A string to prepend to plot names.', type=str, default="")
+    parser.add_argument('-pre','--plot-prefix', help='A string to prepend to plot names. If present, plots will be generated in the ./plots/ directory. Otherwise, no plots will be generated', type=str, default="")
     parser.add_argument('-cs','--num-contrast-subgraphs', help='Number of non-overlapping contrast subgraphs to use (default: 1).\
         When a cs is found, its nodes are removed from the difference network and the next cs is found.\
         At the end, the contrast subgraphs are concatenated and used together.', type=int, default = 1)
@@ -258,12 +258,10 @@ def main():
         print("Tuning alpha value(s)...")
         if args.problem == 1:
             alpha, alpha2 = tune_alpha_accuracy( graphs, labels, alpha, alpha2,
-                                        problem=args.problem, solver=solver,
-                                        plot=args.plot, prefix=args.plot_prefix, num_cs=args.num_contrast_subgraphs)
+                                        problem=args.problem, solver=solver, prefix=args.plot_prefix, num_cs=args.num_contrast_subgraphs)
         if args.problem == 2:
             alpha = tune_alpha_accuracy( graphs, labels, alpha,
-                                problem=args.problem, solver=solver,
-                                plot=args.plot, prefix=args.plot_prefix, num_cs=args.num_contrast_subgraphs)
+                                problem=args.problem, solver=solver, prefix=args.plot_prefix, num_cs=args.num_contrast_subgraphs)
 
     # Reporting
     print("\nProblem Formulation {} with".format(args.problem), end=" ")
@@ -275,7 +273,7 @@ def main():
     print("Solver: ", args.solver.upper())
     print("Number of Contrast Subgraphs: {}".format(args.num_contrast_subgraphs))
     classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
-                            num_folds, args.leave_one_out, args.plot, args.plot_prefix, random_state=23,
+                            num_folds, args.leave_one_out, args.plot_prefix, random_state=23,
                             alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver,
                             num_cs=args.num_contrast_subgraphs)
     

@@ -7,12 +7,12 @@ from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
 def classify(inputs, labels, inputs_to_points, num_folds=5,
-                leave_one_out=False, plot=False,
-                plot_prefix="", random_state=23, **kwargs):
+                leave_one_out=False, plot_prefix="", random_state=23, **kwargs):
     # Cumulative confusion matrix is used to report on classifier metrics over all of the k folds.
     cumulative_confusion_matrix = np.zeros((2,2))
     classifier = LinearSVC(random_state=random_state)
     splitter = None
+    plot = bool(plot_prefix)
 
     if leave_one_out:
         splitter = LeaveOneOut()

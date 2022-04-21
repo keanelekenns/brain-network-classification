@@ -2,6 +2,7 @@ import numpy as np
 import os
 from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
 A_LABEL = "A"
 B_LABEL = "B"
@@ -115,9 +116,29 @@ def evaluate_classifier(confusion_matrix):
 
 def plot_points(points, labels, plotname):
     x_vals = points[:,0]
-    y_vals = points[:,1]
-    x_vals_A, y_vals_A = x_vals[np.where(labels == A_LABEL)], y_vals[np.where(labels == A_LABEL)]
-    x_vals_B, y_vals_B = x_vals[np.where(labels == B_LABEL)], y_vals[np.where(labels == B_LABEL)]
+    a_indices = np.where(labels == A_LABEL)
+    b_indices = np.where(labels == B_LABEL)
+    if points.shape[1] == 3:
+        fig = plt.figure()
+        ax = plt.axes(projection ='3d')
+
+        y_vals = points[:,1]
+        z_vals = points[:,2]
+        x_vals_A, y_vals_A, z_vals_A = x_vals[a_indices], y_vals[a_indices], z_vals[a_indices]
+        x_vals_B, y_vals_B, z_vals_B = x_vals[b_indices], y_vals[b_indices], z_vals[b_indices]
+        ax.scatter(x_vals_A, y_vals_A, z_vals_A, c="#5a7bfc")
+        ax.scatter(x_vals_B, y_vals_B, z_vals_B, c="#fcaa1b")
+        plt.savefig(plotname)
+        return
+    elif points.shape[1] == 1:
+        x_vals_A = x_vals[a_indices]
+        y_vals_A = np.zeros(x_vals_A.shape)
+        x_vals_B = x_vals[b_indices]
+        y_vals_B = np.zeros(x_vals_B.shape)
+    elif points.shape[1] == 2:
+        y_vals = points[:,1]
+        x_vals_A, y_vals_A = x_vals[a_indices], y_vals[a_indices]
+        x_vals_B, y_vals_B = x_vals[b_indices], y_vals[b_indices]
 
     fig, ax = plt.subplots()
     ax.scatter(x_vals_A, y_vals_A, c="#5a7bfc")
