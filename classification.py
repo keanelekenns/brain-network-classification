@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
 def classify(inputs, labels, inputs_to_points, num_folds=5,
-                leave_one_out=False, plot_prefix="", random_state=23, **kwargs):
+                leave_one_out=False, plot_prefix="", random_state=23, supress_output=False, **kwargs):
     # Cumulative confusion matrix is used to report on classifier metrics over all of the k folds.
     cumulative_confusion_matrix = np.zeros((2,2))
     classifier = LinearSVC(random_state=random_state)
@@ -19,10 +19,12 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
         loo_points = []
         loo_labels = []
         loo_predictions = []
-        print("\nPerforming Leave-One-Out cross validation...")
+        if not supress_output:
+            print("\nPerforming Leave-One-Out cross validation...")
     else:
         splitter = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state=random_state)
-        print("\nPerforming {}-fold cross validation...".format(num_folds))
+        if not supress_output:
+            print("\nPerforming {}-fold cross validation...".format(num_folds))
 
     i = 0
     for train_index, test_index in splitter.split(inputs, labels):
@@ -69,11 +71,12 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
             utils.plot_points(loo_points, loo_labels,
                     "plots/{}-{}-LOO-labels".format(plot_prefix,i))
         cumulative_confusion_matrix = confusion_matrix(loo_labels, loo_predictions)
-
-    print("\nMetrics using cumulative confusion matrix:")
-    print(cumulative_confusion_matrix)
+    
     accuracy, precision, recall, f1 = utils.evaluate_classifier(cumulative_confusion_matrix)
-    print("Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}"
+    if not supress_output:
+        print("\nMetrics using cumulative confusion matrix:")
+        print(cumulative_confusion_matrix)
+        print("Accuracy: {}\nPrecision: {}\nRecall: {}\nF1: {}"
             .format(accuracy, precision, recall, f1))
     return accuracy
 

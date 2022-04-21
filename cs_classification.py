@@ -116,6 +116,7 @@ def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
                  Real(name='alpha2', low=0.0, high=0.3)]
         @use_named_args(space)
         def objective(alpha, alpha2):
+            print("Trying alpha =", alpha, " and alpha2 = ", alpha2)
             return -classification.classify(graphs, labels, contrast_subgraph_graphs_to_points, num_folds=num_folds,
                                             alpha=alpha, alpha2=alpha2, problem=1, solver=solver,
                                             num_cs=num_cs)
@@ -134,6 +135,7 @@ def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
         space = [Real(name='alpha', low=0.0, high=0.3)]
         @use_named_args(space)
         def objective(alpha):
+            print("Trying alpha =", alpha)
             return -classification.classify(graphs, labels, contrast_subgraph_graphs_to_points, num_folds=num_folds,
                                             alpha=alpha, problem=2, solver=solver, num_cs=num_cs)
         
@@ -250,10 +252,6 @@ def main():
 
     graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
 
-    num_folds = args.num_folds
-    if args.leave_one_out:
-        num_folds = len(labels)
-
     if args.tune_alpha:
         print("Tuning alpha value(s)...")
         if args.problem == 1:
@@ -273,7 +271,7 @@ def main():
     print("Solver: ", args.solver.upper())
     print("Number of Contrast Subgraphs: {}".format(args.num_contrast_subgraphs))
     classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
-                            num_folds, args.leave_one_out, args.plot_prefix, random_state=23,
+                            args.num_folds, args.leave_one_out, args.plot_prefix, random_state=23,
                             alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver,
                             num_cs=args.num_contrast_subgraphs)
     
