@@ -55,6 +55,30 @@
   \postcode{V8W 2Y2}
 }
 
+\author{Venkatesh Srinivasan}
+\email{srinivas@uvic.ca}
+\affiliation{%
+  \institution{University of Victoria}
+  \department{Computer Science}
+  \streetaddress{PO Box 1700 STN CSC}
+  \city{Victoria}
+  \state{British Columbia}
+  \country{Canada}
+  \postcode{V8W 2Y2}
+}
+
+\author{Alex Thomo}
+\email{thomo@uvic.ca}
+\affiliation{%
+  \institution{University of Victoria}
+  \department{Computer Science}
+  \streetaddress{PO Box 1700 STN CSC}
+  \city{Victoria}
+  \state{British Columbia}
+  \country{Canada}
+  \postcode{V8W 2Y2}
+}
+
 %%
 %% By default, the full list of authors will be used in the page
 %% headers. Often, this list is too long, and will overlap
@@ -104,11 +128,23 @@
 
 \section{Introduction} \label{intro}
 
-The question we are asking is, "Can we translate a brain network into a vector/embedding in such a way that the embedding is intuitive \emph{and} adequately separates different brain networks according to their classes?"
-If we could do this, we would have an explainable classification method for brain networks.
+Graphs are used to represent a wide variety of complex entities, systems, and relationships.
+As their use continues to grow in many areas of research and industry, graph classification, the process of labelling graphs as belonging to certain categories or classes, has become increasingly important \hl{find a citation to back up importance claim}.
+One particularly interesting graph classification problem comes in the form of identifying individuals possessing certain neurological disorders by considering graphs that model functional connections in the brain (referred to as brain networks).
 
-Lanciano \emph{et al.} proposed a method that used contrast subgraphs to create two dimensional representations of brain networks \cite{lanciano2020}.
-A contrast subgraph is simply a subgraph, or set of nodes, that is dense (has high edge weight) in one group of networks and sparse in another, assuming that all analyzed graphs share a common vertex set.
+There are multiple ways to measure the quality of a graph classification model.
+Metrics such as accuracy, precision, and recall are essential for evaluating any classifier \cite{elkan2012}, but recently there has been a trend towards explainability in the world of machine learning and artificial intelligence \cite{hassan2021,linardatos2020}.
+This is because industries, governments, and organizations, especially those that deal with critical decision making such as the medical field, are hesitant to adopt prediction models without knowing \emph{how and why} they make decisions, regardless of how accurate these models are reported to be.
+Therefore, it is increasingly important to find a balance between classification models that are explainable and simple to understand, while also achieving high accuracy, precision, and recall scores.
+
+Explainability in classifiers is not only about building confidence in the user of the classifier.
+Providing insights that may not have been detected through classical methods is another major benefit and may lead to further advancements in research.
+These insights are especially helpful to neuroscientists when it comes to studying less understood neurological disorders such as Autism Spectrum Disorder (ASD).
+
+In their paper, "Explainable Classification of Brain Networks via Contrast Subgraphs", Lanciano \emph{et al.} proposed a method for translating brain networks into two dimensional representations with a simple interpretation \cite{lanciano2020}.
+This translation of a graph into a vector representation is known as a graph embedding and is fundamental to many graph classification problems \cite{goyal2018}.
+The graph embedding employed by Lanciano \emph{et al.} involves the use of contrast subgraphs.
+A contrast subgraph is simply a subgraph, or set of nodes, that is dense (has high edge weight) in one group of networks and sparse (has low edge weight) in another, assuming that all analyzed graphs share a common vertex set.
 
 \section{Related Work} \label{related-work}
 
@@ -127,6 +163,16 @@ https://dl.acm.org/doi/abs/10.1145/3219819.3219980}
 
 \section{Problem Statement} \label{problem-statement}
 
+There are two main components to creating a graph classification model:
+
+\begin{enumerate}
+    \item Embedding technique:
+    \item Classifier:
+\end{enumerate}
+
+The question we are asking is, "How can we translate a brain network into a vector/embedding in such a way that the embedding is intuitive \emph{and} adequately separates different brain networks according to their classes?"
+If we could do this, we would have an explainable classification method for brain networks.
+
 This is a special case of graph classification where all considered graphs possess the same set of vertices (i.e. regions of the brain which are, naturally, common to all brains).
 
 \section{Experiments} \label{experiments}
@@ -138,15 +184,17 @@ This is a special case of graph classification where all considered graphs posse
     \label{fig:my_label}
 \end{figure}
 
-\section{Limitations} \label{limitations}
+\section{Limitations and Threats to Validity} \label{limitations}
 
 This study was limited primarily by the data set used.
 In many machine learning applications, a large volume of data is needed to adequately train and test new models.
 With a small data set, it is difficult to know how generalizable any of the discussed methods are to new brain networks that we wish to classify.
-Additionally, the way the data set was created and the individuals that were studied have a large impact on the validity of the methods developed with respect to classifying brain networks with ASD.
-The limitations in data set quantity and size are likely due to the costly nature of developing such brain networks as the ones analyzed in this study [\hl{TODO: back that claim up and perhaps talk about the data preparation like Lanciano did}].
+Additionally, the way the data set was created and the individuals that were studied have a large impact on the validity of the classification methods developed.
+Elkan gave a helpful discussion of potential pitfalls regarding evaluating classifiers and the way data is gathered \cite{elkan2012}.
+In this case, the limitations in data set size and quantity are due to the costly nature of creating such brain networks as individuals need to undergo a series of scans and time series of these scans are used to create the resultant brain network \cite{lanciano2020}.
+Furthermore, the ratio of the studied classes is imbalanced when compared to the true ratio of individuals with ASD.
 
-Furthermore, Autism Spectrum Disorder is a very complex disorder with unclear definitions, and it may manifest in various different ways [\hl{perhaps this belongs in the intro when describing why the problem is hard?}].
+Autism Spectrum Disorder is a very complex disorder with unclear definitions, and it may manifest in various different ways [\hl{perhaps this belongs in the intro when describing why the problem is hard?}].
 Above all this, the brain is a highly complex organ that is not fully understood.
 The brains of individuals are unique and develop in complex manners.
 There may be a plethora of confounding factors that have an effect on the classification of such networks with respect to identifying ASD in individuals.
