@@ -141,10 +141,33 @@ Explainability in classifiers is not only about building confidence in the user 
 Providing insights that may not have been detected through classical methods is another major benefit and may lead to further advancements in research.
 These insights are especially helpful to neuroscientists when it comes to studying less understood neurological disorders such as Autism Spectrum Disorder (ASD).
 
+The question at the core of this study is, \emph{"What information in a brain network can be used to discern between individuals with ASD and those typically developed (TD)?"}
+Rather than plugging a group of brain networks into a black box classifier and asking it to predict the class of new brain networks, we would like to identify intuitive features of the networks so that we know \emph{why} a given network is being classified the way it is.
+Thankfully, others have come before us with a similar goal.
+
 In their paper, "Explainable Classification of Brain Networks via Contrast Subgraphs", Lanciano \emph{et al.} proposed a method for translating brain networks into two dimensional representations with a simple interpretation \cite{lanciano2020}.
 This translation of a graph into a vector representation is known as a graph embedding and is fundamental to many graph classification problems \cite{goyal2018}.
-The graph embedding employed by Lanciano \emph{et al.} involves the use of contrast subgraphs.
-A contrast subgraph is simply a subgraph, or set of nodes, that is dense (has high edge weight) in one group of networks and sparse (has low edge weight) in another, assuming that all analyzed graphs share a common vertex set.
+The graph embedding employed by Lanciano \emph{et al.} involves the use of contrast subgraphs, which we define in section \ref{emb-technique}.
+
+In this study, we sought to replicate the findings of Lanciano \emph{et al.} as well as discover alternatives or improvements to the methods described in their paper (referred to as the original paper from here on) \cite{lanciano2020}.
+We found the quantitative results reported in the original paper were not reproducible, and much of the implementation was unavailable in the given replication package\footnote{The original paper's replication package can be found at \url{https://github.com/tlancian/contrast-subgraph} and was accessed in January 2022.}.
+In light of this, we summarize our contributions as follows:
+
+\begin{itemize}
+    \item We provide a complete and optimized implementation of the original paper's graph embedding process\footnote{Our replication package can be found at \url{https://github.com/keanelekenns/contrast-subgraph}.}.
+    \item We demonstrate various improvements to the original paper's methods such as 
+    \begin{itemize}
+        \item using a quadratic programming (QP) solver instead of a semidefinite programming (SDP) solver.
+        \item optimizing the local search algorithm used.
+        \item utilizing the top-k contrast subgraphs, as suggested by the original authors for future work.
+    \end{itemize}
+    \item We develop an entirely new graph embedding technique named Discriminative Edges (DE) that provides improved accuracy and reduced computational time over the original paper's methods, all while maintaining similar explainability.
+    \item We provide code for evaluating the graph classification approaches along with recording specific parameters used and results associated with them.
+\end{itemize}
+
+The following section will discuss related works.
+Section \ref{problem-statement} will give more context for the problem we are solving, along with a description of the solutions we plan to apply.
+The process followed and the results obtained are outlined in section \ref{experiments}, and finally, we end the paper with discussions and conclusions for this study.
 
 \section{Related Work} \label{related-work}
 
@@ -155,7 +178,7 @@ A contrast subgraph is simply a subgraph, or set of nodes, that is dense (has hi
 Dai and Wang worked on creating explanations that are built into a GNN \cite{dai2021} rather than trying to find an explanation after the GNN had made its classification.
 They found their method to be less biased and more computationally efficient when compared to using a post-hoc explainer such as GNN explainer.
 
-Wang \emph{et al.} recently proposed a method, named DHC-E, for embedding graphs in a generalizable way that does not require any hyperparameters \cite{wang2021}. The embedding has a moderate number of dimensions depending on the graph set analyzed and is based on the h-index values of each node in the graph. They used principal component analysis to present the graph embeddings in two dimensions.
+Wang \emph{et al.} recently proposed a method, named DHC-E, for embedding graphs in a generalizable way that does not require any hyperparameters \cite{wang2021}. The embedding has a moderate number of dimensions depending on the graph set analyzed and is based on the h-index values of each vertex in the graph. They used principal component analysis to present the graph embeddings in two dimensions.
 
 \hl{Look into https://doi.org/10.1142/S0129183118400077,
 
@@ -163,17 +186,83 @@ https://dl.acm.org/doi/abs/10.1145/3219819.3219980}
 
 \section{Problem Statement} \label{problem-statement}
 
-There are two main components to creating a graph classification model:
+There are three main components for creating a graph classification model:
 
 \begin{enumerate}
-    \item Embedding technique:
-    \item Classifier:
+    \item Embedding technique: This is how the complex information of a graph is translated into a simplified representation. This representation often comes in the form of a real valued vector where each value is called a "feature".
+    \item Classifier algorithm: This is the method of training the model to discern between (embedded) graphs of each class.
+    \item Data: The instances (in this case, brain networks) that the model is trained with.
 \end{enumerate}
 
-The question we are asking is, "How can we translate a brain network into a vector/embedding in such a way that the embedding is intuitive \emph{and} adequately separates different brain networks according to their classes?"
-If we could do this, we would have an explainable classification method for brain networks.
+\textbf{Embedding Technique.}
+This paper focuses primarily on developing embedding techniques.
+The techniques involve the use of contrast subgraphs and discriminative edges.
+We give more thorough discussions of these techniques in the following sections.
 
-This is a special case of graph classification where all considered graphs possess the same set of vertices (i.e. regions of the brain which are, naturally, common to all brains).
+\textbf{Classifier Algorithm.}
+LinearSVC was chosen from the commonly used scikit-learn python library as a baseline classifier algorithm and was used for all the experiments.
+This allows us to fairly compare the embedding techniques used.
+
+\textbf{Data.}
+A common group of data sets were used for the experiments.
+Data from the Autism Brain Imaging Data Exchange (ABIDE) project \cite{craddock2013} was processed by Lanciano \emph{et al.}.
+This processing resulted in groups of undirected, unweighted graphs (brain networks) defined over a common set of 116 vertices.
+The vertices of the brain networks correspond to regions of interest (ROIs) in the brain, thus we are studying a special case of graph classification where all considered graphs possess the same set of vertices (i.e. regions of the brain which are, naturally, common to all brains).
+The edges of each brain network correspond to functional (as opposed to structural) connections in the brain.
+For a more thorough discussion of the data sets used and the processing that was performed by Lanciano \emph{et al.}, please see section 5 of the original paper \cite{lanciano2020}.
+
+\subsection{Embedding Techniques} \label{emb-technique}
+When it comes to creating an embedding technique in the context of brain network classification, the question we are asking is, \emph{"How can we translate a brain network into a vector/embedding in such a way that the embedding is intuitive \textbf{and} adequately separates different brain networks according to their classes?"}
+
+The embedding must be intuitive in order for our classification model to be explainable and simple to understand.
+
+The embedding must also separate the different classes of brain networks in order to help the classification algorithm learn the differences between them.
+In the case of vector embeddings, this literally means that we want the vectors of each class to be as far apart from each other as they can be.
+
+\textbf{Notation.}
+We reuse the notation specified in the original paper and reiterate the important notation here.
+
+Let the $i^{th}$ brain network be represented as an undirected, unweighted graph $G_i = (V, E_i)$, where $V$ is the common vertex set representing the 116 ROIs of the brain as discussed previously (i.e. $|V| = 116$) and $E_i$ is the set of edges belonging to $G_i$ (note: $E_i \subset V \times V$).
+
+Let a \emph{summary graph} corresponding to a set of brain networks $\mathcal{A}$ be a weighted, undirected graph $G^{\mathcal{A}} = (V, w^{\mathcal{A}})$, where $w^{\mathcal{A}}: V \times V \rightarrow \mathbb{R}_+$ is a weight function that assigns a value to each pair of vertices in $V$.
+For vertices $u,v \in V$, we define $w^{\mathcal{A}}(u,v)$ to be the fraction of networks in $\mathcal{A}$ that contain the edge $(u,v)$.
+
+
+\subsubsection{Contrast Subgraph.}
+A contrast subgraph is defined as a subset of vertices, that induces a dense subgraph in one graph and a sparse subgraph in another, assuming that the graphs share a common vertex set.
+The problem can be simplified to finding a set of vertices that induce a dense subgraph in the difference of the two graphs (in this case, summary graphs of each class).
+We echo the problem definition of the original paper.
+
+\emph{Problem 1 (Contrast Subgraph). Given two sets of observation graphs, i.e. the condition group $\mathcal{A} = \{G^{\mathcal{A}}_1, . . . , G^{\mathcal{A}}_{|\mathcal{A}|}\}$ and the control group $\mathcal{B} = \{G^{\mathcal{B}}_1, . . . , G^{\mathcal{B}}_{|\mathcal{B}|}\}$, and corresponding summary graphs $G^{\mathcal{A}} = (V, w^{\mathcal{A}})$ and $G^{\mathcal{B}} = (V, w^{\mathcal{B}})$, we seek to find a subset of vertices $S^* \subseteq V$ that maximizes the contrast subgraph objective}
+\begin{align*}
+    \delta (S) = \sum_{u,v \in S} \left(w^{\mathcal{A}}(u,v) - w^{\mathcal{B}}(u,v) - \alpha\right)
+\end{align*}
+\emph{where $\alpha \in \mathbb{R}_+$ is a user-defined parameter.}
+
+The original paper also defines a symmetric variant of the contrast subgraph problem (\emph{Problem 2}) which shares the same definition of \emph{Problem 1}, but with an alternative objective
+
+\begin{align*}
+    \sigma (S) = \sum_{u,v \in S} \left(|w^{\mathcal{A}}(u,v) - w^{\mathcal{B}}(u,v)| - \alpha\right)
+\end{align*}
+
+The parameter $\alpha$ is used to penalize large contrast subgraphs and to avoid the trivial solution $S^* = V$.
+It can be adjusted to vary the proportion of edges that are considered detrimental to the contrast subgraph objective.
+
+Once a contrast subgraph is obtained, it can be used in the following ways to embed a graph.
+
+\textbf{Problem 1.}
+The original authors use contrast sugbraph overlap to create two features for each brain network.
+Because the problem is asymmetric, two contrast subgraphs are obtained.
+One is found using the difference network $G^{TD - ASD}$ (which is the result of subtracting the summary graph of the TD brain networks from the summary graph of the ASD brain networks) and the other is found using $G^{ASD - TD}$.
+Each feature corresponds to the number of edges in common between the brain network and the two contrast subgraphs.
+
+\textbf{Problem 2.}
+Only one contrast subgraph is obtained with this embedding technique.
+The contrast subgraph is used to induce subgraphs in both of the summary graphs (i.e. $G^{TD}$ and $G^{ASD}$) as well as each individual brain network.
+The distance from the induced brain network and each summary graph is then used as the two features for this embedding.
+
+\subsubsection{Discriminative Edges.}
+
 
 \section{Experiments} \label{experiments}
 
@@ -201,8 +290,8 @@ There may be a plethora of confounding factors that have an effect on the classi
 
 \section{Discussion} \label{discussion}
 
-Lanciano \emph{et al.} showed that the degrees of each node in the studied brain networks did not vary significantly between the two classes \cite{lanciano2020},
-yet the contrast subgraphs are defined as a set of nodes, and every edge induced by these nodes is used for classification.
+Lanciano \emph{et al.} showed that the degrees of each vertex in the studied brain networks did not vary significantly between the two classes \cite{lanciano2020},
+yet the contrast subgraphs are defined as a set of vertices, and every edge induced by these vertices is used for classification.
 Instead, we should look solely at edges that are important for distinguishing between the classes.
 
 The discriminative edge method considers the most important edges in each class (defined as having the most positive and most negative weights in the difference network) when creating an embedding.
