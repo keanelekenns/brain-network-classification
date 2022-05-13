@@ -150,7 +150,7 @@ def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
         return
     
 
-def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, alpha=0.05, alpha2=None,
+def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, alpha=None, alpha2=None, percentile=70, percentile2=None,
                                         problem=1, solver=dense_subgraph.sdp, important_nodes=[], num_cs=1):
     # Create and Write Summary Graphs
     summary_A = utils.summary_graph(train_graphs[np.where(train_labels == utils.A_LABEL)])
@@ -159,6 +159,8 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
     nodes = np.arange(summary_A.shape[0])
     train_points = np.zeros((train_graphs.shape[0], 2))
     test_points = np.zeros((test_graphs.shape[0], 2))
+    alpha_is_provided = bool(alpha)
+
     # Get the difference network between the edge weights in group A and B
     if problem == 1:
         node_mask_a_b = np.array([True]*nodes.shape[0])
@@ -171,6 +173,21 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
         for i in range(num_cs):
             masked_diff_a_b = utils.induce_subgraph(diff_a_b, nodes[node_mask_a_b])
             masked_diff_b_a = utils.induce_subgraph(diff_b_a, nodes[node_mask_b_a])
+
+            # If no alpha value is provided, find the appropriate alpha value using the given percentile
+            if not alpha_is_provided:
+                # A -> B
+                unique = np.triu(masked_diff_a_b, k=1)
+                non_zero_flat = unique[unique != 0]
+                alpha = np.percentile(non_zero_flat, percentile)
+
+                print("alpha = {} ({}-th percentile)".format(alpha, percentile), end=", ")
+                # B -> A
+                unique = np.triu(masked_diff_b_a, k=1)
+                non_zero_flat = unique[unique != 0]
+                alpha2 = np.percentile(non_zero_flat, percentile2) if percentile2 else np.percentile(non_zero_flat, percentile)
+                print("alpha2 = {} ({}-th percentile)".format(alpha2, percentile2 if percentile2 else percentile))
+
             cs_a_b = nodes[node_mask_a_b][solver(masked_diff_a_b, alpha)]
             cs_b_a = nodes[node_mask_b_a][solver(masked_diff_b_a, alpha2 if alpha2 else alpha)]
             # Do not consider the previously found contrast subgraph nodes for future contrast subgraphs
@@ -196,6 +213,14 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
         
         for i in range(num_cs):
             masked_diff = utils.induce_subgraph(diff, nodes[node_mask])
+
+            # If no alpha value is provided, find the appropriate alpha value using the given percentile
+            if not alpha_is_provided:
+                unique = np.triu(masked_diff, k=1)
+                non_zero_flat = unique[unique != 0]
+                alpha = np.percentile(non_zero_flat, percentile)
+                print("alpha = {} ({}-th percentile)".format(alpha, percentile))
+            
             cs = nodes[node_mask][solver(masked_diff, alpha)]
             node_mask[cs] = False
 
@@ -212,13 +237,17 @@ def main():
     parser = argparse.ArgumentParser(description='Graph Classification via Contrast Subgraphs')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
-    parser.add_argument('-a','--alpha', help='Penalty value for contrast subgraph size (varies from 0 to 1).\
-                        If not provided, --tune-alpha is set to true.', type=float, metavar='a')
+    parser.add_argument('-a','--alpha', help='Penalty value for contrast subgraph size (varies from 0 to 1).', type=float, metavar='a')
     parser.add_argument('-a2','--alpha2', help='A secondary alpha value to use for the contrast subgraph from B to A \
             (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs \
             if this is not provided.', type=float, metavar='a')
+    parser.add_argument('-pct','--percentile', help='A number representing the percent of edges that should be considered detrimental (negative)\
+            to the objective function (varies from 0 to 100).', type=float, metavar='%')
+    parser.add_argument('-pct2','--percentile2', help='A secondary percentile value to use for the contrast subgraph from B to A \
+            (only applies if problem formulation is 1). Note that the original percentile is used for both contrast subgraphs \
+            if this is not provided.', type=float, metavar='%2')
     parser.add_argument('-t', '--tune-alpha', help='Whether or not to tune the alpha hyperparameter(s) before running the cross-validation (increases runtime).\
-                        Note that alpha is automatically tuned if no alpha value is provided.', default=False, action="store_true")
+                        Note that alpha is automatically tuned if no alpha or percentile value is provided.', default=False, action="store_true")
     parser.add_argument('-p', '--problem', help='Problem Formulation (default: 1)', type=int, default = 1, choices={1,2})
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-s','--solver', help='Solver to use for finding a contrast subgraph (default: sdp).', type=str, default = "sdp", choices={"sdp","qp"})
@@ -229,15 +258,30 @@ def main():
         At the end, the contrast subgraphs are concatenated and used together.', type=int, default = 1)
 
     args = parser.parse_args()
-    alpha = args.alpha
-    alpha2 = args.alpha2
+    alpha = None
+    alpha2 = None
+    percentile = None
+    percentile2 = None
+    tune_alpha = args.tune_alpha
 
-    if not alpha:
-        args.tune_alpha = True
-    elif(alpha < 0 or alpha > 1):
-        raise ValueError("alpha should be between 0 and 1 inclusive.")
-    if(args.problem == 1 and alpha2 and (alpha2 < 0 or alpha2 > 1)):
-        raise ValueError("secondary alpha should be between 0 and 1 inclusive.")
+    if not args.alpha and not args.percentile:
+        tune_alpha = True
+    elif not args.alpha:
+        if args.percentile < 0 or args.percentile > 100:
+            raise ValueError("percentile should be between 0 and 100 inclusive.")
+        percentile = args.percentile
+        if args.percentile2:
+            if args.percentile2 < 0 or args.percentile2 > 100:
+                raise ValueError("secondary percentile should be between 0 and 100 inclusive.")
+            percentile2 = args.percentile2
+    else:
+        if args.alpha < 0 or args.alpha > 1:
+            raise ValueError("alpha should be between 0 and 1 inclusive.")
+        alpha = args.alpha
+        if args.alpha2:
+            if args.alpha2 < 0 or args.alpha2 > 1:
+                raise ValueError("secondary alpha should be between 0 and 1 inclusive.")
+            alpha2 = args.alpha2
     
     if args.solver == "sdp":
         solver = dense_subgraph.sdp
@@ -252,7 +296,7 @@ def main():
 
     graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
 
-    if args.tune_alpha:
+    if tune_alpha:
         print("Tuning alpha value(s)...")
         if args.problem == 1:
             alpha, alpha2 = tune_alpha_accuracy( graphs, labels, alpha, alpha2,
@@ -263,8 +307,10 @@ def main():
 
     # Reporting
     print("\nProblem Formulation {} with".format(args.problem), end=" ")
+    alpha_val = alpha if alpha else "{}-th percentile of edge weights".format(percentile)
+    alpha_val2 = alpha2 if alpha2 else (alpha if alpha else ("{}-th percentile of edge weights".format(percentile2 if percentile2 else percentile)))
     if args.problem == 1:
-        print("A->B alpha = {}, B->A alpha = {}".format(alpha, alpha2 if alpha2 else alpha))
+        print("A->B alpha = {}, B->A alpha = {}".format(alpha_val, alpha_val2))
     elif args.problem == 2:
         print("alpha = {}".format(alpha))
 
@@ -272,8 +318,8 @@ def main():
     print("Number of Contrast Subgraphs: {}".format(args.num_contrast_subgraphs))
     classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
                             args.num_folds, args.leave_one_out, args.plot_prefix, random_state=23,
-                            alpha=alpha, alpha2=alpha2, problem=args.problem, solver=solver,
-                            num_cs=args.num_contrast_subgraphs)
+                            alpha=alpha, alpha2=alpha2, percentile=percentile, percentile2=percentile2,
+                            problem=args.problem, solver=solver, num_cs=args.num_contrast_subgraphs)
     
 
 if __name__ == "__main__":
