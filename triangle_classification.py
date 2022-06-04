@@ -3,17 +3,26 @@ import argparse
 import utils
 import classification
 
-def calculate_ratios(counts, total):
-    return [count/total for count in counts]
+SUMMARY_GRAPH_EDGE_WEIGHT_THRESHOLD = 0.1
 
-def count_triangles(graphs, triangles):
+# TRIANGLE_RATIO_THRESHOLD = 0.8
+TRIANGLE_RATIO_DIFF_THRESHOLD = 0.2
+
+def count_triangles_in_graph(triangles, graph):
+    count = 0
+    for x,y,z in triangles:
+        if graph[x][y] == 1 and graph[x][z] == 1 and graph[y][z] == 1:
+            count += 1
+    return count
+
+def triangle_histogram(graphs, triangles):
     counts = [0]*len(triangles)
     for graph in graphs:
-        for i in range(triangles.shape[0]):
+        for i in range(len(triangles)):
             x,y,z = triangles[i]
             if graph[x][y] == 1 and graph[x][z] == 1 and graph[y][z] == 1:
                 counts[i] += 1
-    return counts
+    return np.array(counts)
 
 def get_triangles(graph):
     nodes = np.arange(graph.shape[0])
@@ -24,7 +33,7 @@ def get_triangles(graph):
             if graph[i][j] == 1:
                 neighbours = graph[i] + graph[j]
                 triangles += [(i,j,k) for k in nodes[np.where(neighbours==2)]]
-    return triangles
+    return np.array(triangles)
 
 def triangles_graphs_to_points(train_graphs, train_labels, test_graphs):
     # Create and Write Summary Graphs
@@ -33,30 +42,39 @@ def triangles_graphs_to_points(train_graphs, train_labels, test_graphs):
     summary_A = utils.summary_graph(graphs_a)
     summary_B = utils.summary_graph(graphs_b)
 
-    nodes = np.arange(summary_A.shape[0])
-    train_points = np.zeros((train_graphs.shape[0], 2))
-    test_points = np.zeros((test_graphs.shape[0], 2))
     diff_net = summary_A - summary_B
     diff_net = np.triu(diff_net, k=1)
 
     diff_net_a = diff_net.copy()
-    diff_net_a[diff_net_a > 0] = 1
-    diff_net_a[diff_net_a < 0] = 0
+    diff_net_a[diff_net_a > SUMMARY_GRAPH_EDGE_WEIGHT_THRESHOLD] = 1
+    diff_net_a[diff_net_a <= SUMMARY_GRAPH_EDGE_WEIGHT_THRESHOLD] = 0
 
     diff_net_b = diff_net.copy()
-    diff_net_b[diff_net_b < 0] = 1
-    diff_net_b[diff_net_b > 0] = 0
+    diff_net_b[diff_net_b >= -SUMMARY_GRAPH_EDGE_WEIGHT_THRESHOLD] = 0
+    diff_net_b[diff_net_b < -SUMMARY_GRAPH_EDGE_WEIGHT_THRESHOLD] = 1
 
     triangles_a = get_triangles(diff_net_a)
     triangles_b = get_triangles(diff_net_b)
 
-    a_in_a = calculate_ratios(count_triangles(graphs_a, triangles_a), graphs_a.shape[0])
-    b_in_a = calculate_ratios(count_triangles(graphs_a, triangles_b), graphs_a.shape[0])
-    a_in_b = calculate_ratios(count_triangles(graphs_b, triangles_a), graphs_b.shape[0])
-    b_in_b = calculate_ratios(count_triangles(graphs_b, triangles_b), graphs_b.shape[0])
+    a_in_a = triangle_histogram(graphs_a, triangles_a)/len(graphs_a)
+    b_in_a = triangle_histogram(graphs_a, triangles_b)/len(graphs_a)
+    a_in_b = triangle_histogram(graphs_b, triangles_a)/len(graphs_b)
+    b_in_b = triangle_histogram(graphs_b, triangles_b)/len(graphs_b)
 
-    
+    important_triangles_a = triangles_a[np.where(a_in_a - a_in_b > TRIANGLE_RATIO_DIFF_THRESHOLD)]
+    important_triangles_b = triangles_b[np.where(b_in_b - b_in_a > TRIANGLE_RATIO_DIFF_THRESHOLD)]
 
+    print(f"Important A: {important_triangles_a}\nImportant B: {important_triangles_b}")
+
+    train_points = np.array(list(map(lambda graph:
+                                np.array([count_triangles_in_graph(important_triangles_a, graph),
+                                          count_triangles_in_graph(important_triangles_b, graph)]),
+                             train_graphs)))
+
+    test_points = np.array(list(map(lambda graph:
+                                np.array([count_triangles_in_graph(important_triangles_a, graph),
+                                          count_triangles_in_graph(important_triangles_b, graph)]),
+                             test_graphs)))
     return train_points, test_points
 
 def main():
