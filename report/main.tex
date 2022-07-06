@@ -1,0 +1,110 @@
+\def\year{2022}\relax
+\documentclass[letterpaper]{article}
+% DO NOT CHANGE THIS
+\usepackage{aaai22} % DO NOT CHANGE THIS
+\usepackage{times} % DO NOT CHANGE THIS
+\usepackage{helvet} % DO NOT CHANGE THIS
+\usepackage{courier} % DO NOT CHANGE THIS
+\usepackage[hyphens]{url} % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm} % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\usepackage{natbib} % DO NOT CHANGE THIS
+\usepackage{caption} % DO NOT CHANGE THIS
+\DeclareCaptionStyle{ruled}%
+{labelfont=normalfont,labelsep=colon,strut=off}
+\frenchspacing % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+%
+% PDF Info Is REQUIRED.
+% For /Title, write your title in Mixed Case.
+% Don’t use accents or commands. Retain the parentheses.
+% For /Author, add all authors within the parentheses,
+% separated by commas. No accents, special characters
+% or commands are allowed.
+% Keep the /TemplateVersion tag as is
+\pdfinfo{
+/Title (Explaining Models for Brain Network Classification)
+/Author (Keanelek Enns, Tengkai Yu, Alex Thomo, Venkatesh Srinivasan)
+/TemplateVersion (2022.1)
+}
+
+\author{
+Keanelek Enns, Tengkai Yu, Alex Thomo, Venkatesh Srinivasan\\
+}
+\affiliations {
+University of Victoria 3800 Finnerty Road Victoria, BC V8P 5C2\\
+}
+
+\title{Explaining Models for Brain Network Classification}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+TODO
+\end{abstract}
+
+\section{Introduction}
+
+There are a number of different areas we could focus on:
+\begin{enumerate}
+    \item Autism Spectrum Disorder and its impact
+    \item Model Explainability and Interpretability (explainable models vs explanation techniques for black box models)
+\end{enumerate}
+
+
+Contributions:
+\begin{enumerate}
+    \item Replication of Lanciano et al \cite{lanciano2020} + replication package
+    \item Improvements to Lanciano et al's technique + discriminative edges technique + graph embedding evaluation module
+    \item Using black box models on dataset (DNN and GNN)
+    \item Investigate explanation techniques for black box models
+\end{enumerate}
+  
+\section{Related Work}
+\textbf{I think we need to spend a lot of time here. Looking at the manuscripts page, I am overwhelmed and feel that we have not adequately made ourselves aware of the existing work in the field. I do not feel confident saying our work is novel...}
+
+Manuscripts page: http://fcon\_1000.projects.nitrc.org/indi/abide/manuscripts.html
+
+Talk about the shortcomings of the work from lanciano here \cite{lanciano2020}?
+
+\section{Problem Statement}
+Not sure exactly where we are focusing our problem. Here are some options:
+\begin{enumerate}
+    \item Creating explainable models (node identity aware data)
+    \item Exploring explanation techniques for black box models (node identity aware data) 
+    \item Brain network classification
+\end{enumerate}
+
+\subsection{Data}
+\textbf{We need to do more research on the dataset and consider using the ABIDE II dataset instead of just ABIDE I. It looks like only ABIDE I has been preprocessed from the link below, but perhaps someone has preprocessed ABIDE II in a similar fashion.}
+
+http://preprocessed-connectomes-project.org/abide/index.html
+
+https://www.frontiersin.org/10.3389/conf.fninf.2013.09.00041/event\_abstract
+
+
+
+\textbf{Discussion of Node-Identity Awareness and its importance with respect to how we treat the data. We do not need to treat it strictly like a graph as lanciano et al do.}
+
+\section{Experiments}
+
+\section{Discussion}
+
+\section{Conclusion}
+
+\subsection{Future Work}
+\begin{itemize}
+    \item Consider spaciality of ROIs.
+    \item Consider different preprocessing of ABIDE dataset.
+    \item Run experiments with ABIDE II (if we don't get to it)
+\end{itemize}
+
+\appendix
+
+% References and End of Paper
+% These lines must be placed at the end of your paper
+\bibliography{refs}
+\end{document}
