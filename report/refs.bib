@@ -231,3 +231,24 @@ series = {WSDM '15}
     ABSTRACT = {Autism spectrum disorder (ASD) is a neurodevelopmental disorder characterized by a lack of social communication and social interaction. Autism is a mental disorder investigated by social and computational intelligence scientists utilizing advanced technologies such as machine learning models to enhance clinicians&rsquo; ability to provide robust diagnosis and prognosis of autism. However, with dynamic changes in autism behaviour patterns, these models&rsquo; quality and accuracy have become a great challenge for clinical practitioners. We applied a deep neural network learning on a large brain image dataset obtained from ABIDE (autism brain imaging data exchange) to provide an efficient diagnosis of ASD, especially for children. Our deep learning model combines unsupervised neural network learning, an autoencoder, and supervised deep learning using convolutional neural networks. Our proposed algorithm outperforms individual-based classifiers measured by various validations and assessment measures. Experimental results indicate that the autoencoder combined with the convolution neural networks provides the best performance by achieving 84.05% accuracy and Area under the Curve (AUC) value of 0.78.},
     DOI = {10.3390/children7100182}
 }
+
+@ARTICLE{thomas2020,
+  
+    AUTHOR={Thomas, Rajat Mani and Gallo, Selene and Cerliani, Leonardo and Zhutovsky, Paul and El-Gazzar, Ahmed and van Wingen, Guido},   
+        
+    TITLE={Classifying Autism Spectrum Disorder Using the Temporal Statistics of Resting-State Functional MRI Data With 3D Convolutional Neural Networks},      
+        
+    JOURNAL={Frontiers in Psychiatry},      
+        
+    VOLUME={11},           
+        
+    YEAR={2020},      
+        
+    URL={https://www.frontiersin.org/articles/10.3389/fpsyt.2020.00440},       
+        
+    DOI={10.3389/fpsyt.2020.00440},      
+        
+    ISSN={1664-0640},   
+    
+    ABSTRACT={Resting-state functional magnetic resonance imaging (rs-fMRI) data are 4-dimensional volumes (3-space + 1-time) that have been posited to reflect the underlying mechanisms of information exchange between brain regions, thus making it an attractive modality to develop diagnostic biomarkers of brain dysfunction. The enormous success of deep learning in computer vision has sparked recent interest in applying deep learning in neuroimaging. But the dimensionality of rs-fMRI data is too high (~20 M), making it difficult to meaningfully process the data in its raw form for deep learning experiments. It is currently not clear how the data should be engineered to optimally extract the time information, and whether combining different representations of time could provide better results. In this paper, we explored various transformations that retain the full spatial resolution by summarizing the temporal dimension of the rs-fMRI data, therefore making it possible to train a full three-dimensional convolutional neural network (3D-CNN) even on a moderately sized [~2,000 from Autism Brain Imaging Data Exchange (ABIDE)-I and II] data set. These transformations summarize the activity in each voxel of the rs-fMRI or that of the voxel and its neighbors to a single number. For each brain volume, we calculated regional homogeneity, the amplitude of low-frequency fluctuations, the fractional amplitude of low-frequency fluctuations, degree centrality, eigenvector centrality, local functional connectivity density, entropy, voxel-mirrored homotopic connectivity, and auto-correlation lag. We trained the 3D-CNN on a publically available autism dataset to classify the rs-fMRI images as being from individuals with autism spectrum disorder (ASD) or from healthy controls (CON) at an individual level. We attained results competitive on this task for a combined ABIDE-I and II datasets of ~66\%. When all summary measures were combined the result was still only as good as that of the best single measure which was regional homogeneity (ReHo). In addition, we also applied the support vector machine (SVM) algorithm on the same dataset and achieved comparable results, suggesting that 3D-CNNs could not learn additional information from these temporal transformations that were more useful to differentiate ASD from CON.}
+}
