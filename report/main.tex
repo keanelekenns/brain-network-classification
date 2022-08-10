@@ -51,10 +51,7 @@ University of Victoria 3800 Finnerty Road Victoria, BC V8P 5C2\\
 \maketitle
 
 \begin{abstract}
-% The point of using Lorem ipsum is to roughly see where images and sections will land in the final result
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
 
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
 \end{abstract}
 
 \section{Introduction}
@@ -74,10 +71,9 @@ Therefore, it is increasingly important to find a balance between classification
 Another benefit of emphasizing explainability is to provide insights that may not have been detected through classical methods and may lead to further advancements in research.
 These insights could be especially helpful to neuroscientists when it comes to studying less understood neurological disorders.
 
-% Either I should reword this to be less prescriptive, or we should include this in the discussion/conclusions instead.
-The criteria for diagnosing ASD are vague compared to other mental disorders \cite{dsm52013}, and even underwent changes within the last decade \cite{grant2013}.
+The criteria for diagnosing ASD are vague compared to other neurological disorders \cite{dsm52013}, and even underwent changes within the last decade \cite{grant2013}.
 Furthermore, ASD can vary widely in severity.
-If black-box ML and AI models are to be used for diagnosing ASD in practice, biases of initial models could compound, as diagnoses from such models may inevitably be used as training data for future models.
+If black-box ML models alone are to be used for diagnosing ASD in practice, biases of initial models could compound, as diagnoses from such models may inevitably be used as training data for future models.
 For such a loosely understood disorder as ASD, this could potentially mutate the practical definition of the disorder or favour certain expressions of it.
 Therefore it is critical that such models are highly explainable.
 This allows experts to evaluate the biases of the models and provide correction.
@@ -97,7 +93,7 @@ In light of this, we summarize our contributions as follows:
     \item We provide a replication package to recreate all the work done in this study, as well as provide a complete and optimized implementation of Lanciano \emph{et al.}'s graph embedding process.
 \end{itemize}
 
-The following section will discuss related works.
+The following section will discuss related work.
 Preliminary information about the data sets and notation used for this study will be covered in the section that follows.
 We will then describe the CS embedding technique as well as our own embedding technique, DE.
 The experiments conducted and the results obtained are outlined in the Experiments section, and finally, we end the paper with discussions and conclusions for this study and suggestions for future research.
@@ -108,10 +104,17 @@ The experiments conducted and the results obtained are outlined in the Experimen
 
 % Manuscripts page: http://fcon_1000.projects.nitrc.org/indi/abide/manuscripts.html
 
+In this paper, we are studying a special case of graph classification where all considered graphs possess the same set of vertices.
+This concept is called \emph{node identity awareness} (NIA).
+
+Maddalena \emph{et al.} compared NIA graph embedding techniques such as denoising autoencoders (DAE) \cite{gutierrez2019} and a matrix factorization approach named Joint Embedding (JE) \cite{swang2021} for classifying brain networks among other network types, but these embedding techniques were lacking in terms of performance and interpretability \cite{maddalena2021}.
+
+Reli{\'o}n \emph{et al.} worked to identify brain networks of individuals with schizophrenia using convex regularization and selecting important edges and nodes \cite{relion2019}. Although claiming interpretability and explainability as a goal, they do not emphasize or discuss this aspect of their work.
+
 Talk about the shortcomings of the work from lanciano here \cite{lanciano2020}?
 
-\cite{gutierrez2019} - Node identity aware?
-\cite{tsourakakis2013} - Dense subgraph
+Perotti \emph{et al.} created a tool for deriving SHAP values in the domain of graph classification by using motifs as features.
+This work focuses on explaining the decisions of black-box classifiers, but determining these explanations is computationally expensive (need to look into how/whether they solved that).
 
 \cite{abbas2020} - Diagnoses with behavioural info.
 
@@ -119,8 +122,8 @@ Talk about the shortcomings of the work from lanciano here \cite{lanciano2020}?
 \cite{sewani2020}.
 
 \cite{kong2019}
-
-Should we mention \cite{perotti2022} and \cite{coupette2022}
+\cite{perotti2022}
+\cite{coupette2022}
 
 SCOTT WILL NEED TO WRITE ABOUT THE NEURAL NETWORK RELATED WORKS. Look at references 25, 26, 38, 42 from Lanciano's paper. Specifically 26 (https://ieeexplore.ieee.org/document/8970823) which claims 99\% accuracy with DNN approach.
 
@@ -133,11 +136,10 @@ The data sets in this paper originated from the Autism Brain Imaging Data Exchan
 This processing resulted in groups of simple, undirected, and unweighted graphs (brain networks) defined over a common set of 116 vertices.
 The brain networks are labelled with two classes: Typically Developed (TD) or Autism Spectrum Disorder (ASD).
 
-The vertices of the brain networks correspond to regions of interest (ROIs) in the brain, thus we are studying a special case of graph classification where all considered graphs possess the same set of vertices.
-This concept is called \emph{node identity awareness}.
+The vertices of the brain networks correspond to regions of interest (ROIs) in the brain, the set of ROIs are common across all the brain networks considered in the data set, thus our graphs exhibit NIA.
 The edges of each brain network correspond to functional (as opposed to structural) connections in the brain.
 
-For a more thorough discussion of the data sets used and the processing that was performed by Lanciano \emph{et al.}, please see section 5 of the their paper \cite{lanciano2020}.
+For a more thorough discussion of the data sets used and the processing that was performed by Lanciano \emph{et al.}, please see section 5 of their paper \cite{lanciano2020}.
 
 \textbf{Notation.}
 We reuse the notation specified in Lanciano \emph{et al.}'s paper and reiterate the important notation here.
@@ -176,7 +178,7 @@ Lanciano \emph{et al.} base the constrast subgraph objective off of the optimal 
 Note that contrast subgraphs themselves do not constitute a graph embedding technique, but they can be used in the following ways to embed a graph.
 
 \textbf{Problem 1.}
-The original authors use contrast sugbraph overlap to create two features for each brain network.
+Lanciano \emph{et al.} use contrast sugbraph overlap to create two features for each brain network.
 Because the problem is asymmetric, two contrast subgraphs are needed.
 One is found in the difference network $G^{TD - ASD}$ (which is the result of subtracting the summary graph $G^{TD}$ from the summary graph $G^{ASD}$) and the other is found in $G^{ASD - TD}$.
 Each feature of a brain network's embedding corresponds to the number of edges in common between the brain network and each contrast subgraph.
@@ -213,7 +215,7 @@ Based on our experiments, the original contrast subgraph embedding techniques ar
 Therefore we turned our attention to developing improvements for the contrast subgraph embedding technique.
 
 \textbf{Quadratic Programming.}
-We looked further into the work by Cadena \emph{et al.} which was repurposed by the original authors.
+We looked further into the work by Cadena \emph{et al.} which was repurposed by Lanciano \emph{et al.}
 When creating a mathematical problem formulation for finding a dense subgraph in a signed network, Cadena \emph{et al.} proposed a quadratic programming problem.
 In their study, they chose to approximate the quadratic program with a semidefinite program and a rounding technique \cite{cadena2016}.
 Lanciano \emph{et al.} then used this implementation to find a contrast subgraph in their context.
@@ -223,11 +225,11 @@ We used a Python library named CVXOPT\footnote{This library can be found at \url
 None of the QP solver libraries we found were able to restrict potential solution vectors to discrete values such as \{-1,1\} (i.e. out or in), so we restricted solution values to [-1,1] rounding positive values to 1 and non-positive values to -1.
 
 % I STILL NEED TO CALCULATE THIS!!!
-The speed increase that resulted from changing the solver was significant as we will discuss in the results section.
+The speed increase that resulted from changing the solver was significant as we will discuss in the experiments section.
 
 \textbf{Local Search Optimization.}
 The QP and SDP solvers only approximate the densest subgraph, so a local search step is used to improve the density of the chosen subgraph.
-The localSearch algorithm developed by Tsourakakis \emph{et al.} and used by both Cadena \emph{et al.} and the original authors works by considering the density of the subgraph if each vertex outside the subgraph were to be added to the subgraph, adding them when it increases the density.
+The localSearch algorithm developed by Tsourakakis \emph{et al.} and used by both Cadena \emph{et al.} and Lanciano \emph{et al.} works by considering the density of the subgraph if each vertex outside the subgraph were to be added to the subgraph, adding them when it increases the density.
 This is repeated until all the vertices have been considered.
 Afterwards, the algorithm seeks to remove a single vertex from the subgraph and does so if it finds one that increases the density.
 This process is then repeated until a maximum number of iterations have been reached, or no vertices can be added or taken away from the subgraph to increase its density.
@@ -237,8 +239,8 @@ Considering the goal of the local search algorithm is to increase the density of
 This modified local search algorithm can be seen in the replication package for this study, and was found to increase the accuracy of the classifiers that used it over the original implementation.
 
 \textbf{Top-k Contrast Subgraphs.}
-Finally, we follow the original authors' suggestion for future work and use the top-k contrast subgraphs.
-We did not implement it according to Balalau \emph{et al.} \cite{balalau2015} as suggested, but instead took the approach described by Tsourakakis \emph{et al.} in section 4.1 of their paper \cite{tsourakakis2013}.
+Finally, we follow Lanciano \emph{et al.}'s suggestion for future work and use the top-k contrast subgraphs.
+We did not implement it according to the suggested method \cite{balalau2015}, but instead took the approach described by Tsourakakis \emph{et al.} in section 4.1 of their paper \cite{tsourakakis2013}.
 We removed the vertices of each contrast subgraph as it was found and searched for a new contrast subgraph among the remaining vertices of the graph until all $k$ contrast subgraphs had been found.
 
 The resulting $k$ embeddings for each new brain network were added together feature-wise to obtain the final embedding.
@@ -279,40 +281,6 @@ The DE embeddings encode more information than the contrast subgraph embeddings,
 %Not sure if this should be mentioned here or elsewhere
 We were unable to replicate their results as much of the implementation was unavailable in the given replication package\footnote{Lanciano \emph{et al.}'s replication package can be found at \url{https://github.com/tlancian/contrast-subgraph} and was first accessed in January 2022.}.
 
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
 
 
 \section{Discussion}
@@ -329,27 +297,15 @@ Instead, it could be beneficial to break the disorder into multiple additional c
 
 
 
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
-
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-
 
 \section{Conclusion}
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
 
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
 
 
 \subsection{Future Work}
 \begin{itemize}
     \item Develop classifiers using behavioural and neurological information together.
-    \item Consider spaciality of ROIs.
+    \item Consider spaciality of ROIs. \cite{relion2019} suggests this would not be as helpful when the brain network has few ROIs, which is the case with the ABIDE dataset.
     \item Consider different preprocessing of ABIDE dataset.
     \item Run experiments with ABIDE II (if we don't get to it)
     \item Combine brain scan information with behavioural assesment information.
@@ -357,8 +313,7 @@ ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. 
 \end{itemize}
 
 
-ERGO IN GUBERNANDO NIHIL, IN OFFICIO PLURIMUM INTEREST, QUO IN GENERE PECCETUR. QUIA NEC HONESTO QUIC QUAM HONESTIUS NEC TURPI TURPIUS. NON POTES ERGO ISTA TUERI, TORQUATE, MIHI CREDE, SI TE IPSE ET TUAS COGITATIONES ET STUDIA PERSPEXERIS; QUAE AUTEM NATURA SUAE PRIMAE INSTITUTIONIS OBLITA EST? QUID, SI REVIVISCANT PLATONIS ILLI ET DEINCEPS QUI EORUM AUDITORES FUERUNT, ET TECUM ITA LOQUANTUR?
-LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. EXPRESSA VERO IN IIS AETATIBUS, QUAE IAM CONFIRMATAE SUNT. NOSTI, CREDO, ILLUD: NEMO PIUS EST, QUI PIETATEM-; ATQUE HAEC CONIUNCTIO CONFUSIOQUE VIRTUTUM TAMEN A PHILOSOPHIS RATIONE QUADAM DISTINGUITUR. VIDIT HOMERUS PROBARI FABULAM NON POSSE, SI CANTIUNCULIS TANTUS IRRETITUS VIR TENERETUR; QUAMQUAM TU HANC COPIOSIOREM ETIAM SOLES DICERE. LEGIMUS TAMEN DIOGENEM, ANTIPATRUM, MNESARCHUM, PANAETIUM, MULTOS ALIOS IN PRIMISQUE FAMILIAREM NOSTRUM POSIDONIUM. NEMO NOSTRUM ISTIUS GENERIS ASOTOS IUCUNDE PUTAT VIVERE. ET QUIDEM IURE FORTASSE, SED TAMEN NON GRAVISSIMUM EST TESTIMONIUM MULTITUDINIS. DUO REGES: CONSTRUCTIO INTERRETE. RATIO QUIDEM VESTRA SIC COGIT.
+
 
 \appendix
 
