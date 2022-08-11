@@ -2,7 +2,6 @@ import numpy as np
 import os
 from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 
 A_LABEL = "A"
 B_LABEL = "B"
