@@ -1,0 +1,381 @@
+
+Performing Contrast Subgraph Classification on Brain Networks
+datasets/adolescents/td/ -> Class A
+datasets/adolescents/asd/ -> Class B
+Tuning alpha value(s)...
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [46. 70.]]
+Accuracy: 0.6371308016877637
+Precision: 0.6694214876033058
+Recall: 0.6377952755905512
+F1: 0.6532258064516129
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [54. 62.]]
+Accuracy: 0.6033755274261603
+Precision: 0.6694214876033058
+Recall: 0.6
+F1: 0.6328125
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[121.   0.]
+ [116.   0.]]
+Accuracy: 0.510548523206751
+Precision: 1.0
+Recall: 0.510548523206751
+F1: 0.6759776536312849
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [55. 61.]]
+Accuracy: 0.5991561181434599
+Precision: 0.6694214876033058
+Recall: 0.5955882352941176
+F1: 0.6303501945525292
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[73. 48.]
+ [43. 73.]]
+Accuracy: 0.6160337552742616
+Precision: 0.6033057851239669
+Recall: 0.6293103448275862
+F1: 0.6160337552742615
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [48. 68.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6694214876033058
+Recall: 0.627906976744186
+F1: 0.648
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [47. 69.]]
+Accuracy: 0.6286919831223629
+Precision: 0.6611570247933884
+Recall: 0.6299212598425197
+F1: 0.6451612903225807
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[80. 41.]
+ [46. 70.]]
+Accuracy: 0.6329113924050633
+Precision: 0.6611570247933884
+Recall: 0.6349206349206349
+F1: 0.6477732793522267
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [46. 70.]]
+Accuracy: 0.6371308016877637
+Precision: 0.6694214876033058
+Recall: 0.6377952755905512
+F1: 0.6532258064516129
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [46. 70.]]
+Accuracy: 0.6371308016877637
+Precision: 0.6694214876033058
+Recall: 0.6377952755905512
+F1: 0.6532258064516129
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [46. 70.]]
+Accuracy: 0.6371308016877637
+Precision: 0.6694214876033058
+Recall: 0.6377952755905512
+F1: 0.6532258064516129
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [46. 70.]]
+Accuracy: 0.6371308016877637
+Precision: 0.6694214876033058
+Recall: 0.6377952755905512
+F1: 0.6532258064516129
+
+Problem Formulation 2 with alpha = 0.029478111353922257
+Solver:  QP
+Number of Contrast Subgraphs: 3
+
+Performing 5-fold cross validation...
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+Every node in the graph is included by a contrast subgraph!
+                    Stopped at Contrast Subgraph 1.
+
+Metrics using cumulative confusion matrix:
+[[81. 40.]
+ [46. 70.]]
+Accuracy: 0.6371308016877637
+Precision: 0.6694214876033058
+Recall: 0.6377952755905512
+F1: 0.6532258064516129

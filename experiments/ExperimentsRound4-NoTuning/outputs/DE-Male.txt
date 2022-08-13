@@ -1,0 +1,13 @@
+
+Performing Discriminitive Edge Classification on Brain Networks
+Number of Edges:  3
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[270. 148.]
+ [162. 258.]]
+Accuracy: 0.630071599045346
+Precision: 0.645933014354067
+Recall: 0.625
+F1: 0.6352941176470588

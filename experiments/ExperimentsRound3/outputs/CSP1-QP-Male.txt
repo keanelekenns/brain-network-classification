@@ -1,0 +1,269 @@
+
+Performing Contrast Subgraph Classification on Brain Networks
+datasets/male/td/ -> Class A
+datasets/male/asd/ -> Class B
+Tuning alpha value(s)...
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[249. 169.]
+ [167. 253.]]
+Accuracy: 0.5990453460620525
+Precision: 0.5956937799043063
+Recall: 0.5985576923076923
+F1: 0.5971223021582734
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[  0. 418.]
+ [  0. 420.]]
+Accuracy: 0.5011933174224343
+Precision: 0.0
+Recall: nan
+F1: nan
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[172. 246.]
+ [123. 297.]]
+Accuracy: 0.5596658711217184
+Precision: 0.41148325358851673
+Recall: 0.5830508474576271
+F1: 0.48246844319775595
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[241. 177.]
+ [202. 218.]]
+Accuracy: 0.5477326968973747
+Precision: 0.5765550239234449
+Recall: 0.5440180586907449
+F1: 0.5598141695702671
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[222. 196.]
+ [155. 265.]]
+Accuracy: 0.581145584725537
+Precision: 0.5311004784688995
+Recall: 0.5888594164456233
+F1: 0.5584905660377358
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[221. 197.]
+ [159. 261.]]
+Accuracy: 0.5751789976133651
+Precision: 0.5287081339712919
+Recall: 0.5815789473684211
+F1: 0.5538847117794486
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[243. 175.]
+ [179. 241.]]
+Accuracy: 0.5775656324582339
+Precision: 0.5813397129186603
+Recall: 0.5758293838862559
+F1: 0.5785714285714286
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[240. 178.]
+ [174. 246.]]
+Accuracy: 0.5799522673031027
+Precision: 0.5741626794258373
+Recall: 0.5797101449275363
+F1: 0.576923076923077
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[240. 178.]
+ [160. 260.]]
+Accuracy: 0.5966587112171837
+Precision: 0.5741626794258373
+Recall: 0.6
+F1: 0.5867970660146699
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[236. 182.]
+ [184. 236.]]
+Accuracy: 0.5632458233890215
+Precision: 0.5645933014354066
+Recall: 0.5619047619047619
+F1: 0.5632458233890215
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[241. 177.]
+ [174. 246.]]
+Accuracy: 0.581145584725537
+Precision: 0.5765550239234449
+Recall: 0.5807228915662651
+F1: 0.5786314525810325
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[233. 185.]
+ [177. 243.]]
+Accuracy: 0.568019093078759
+Precision: 0.5574162679425837
+Recall: 0.5682926829268292
+F1: 0.5628019323671498
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[217. 201.]
+ [151. 269.]]
+Accuracy: 0.5799522673031027
+Precision: 0.5191387559808612
+Recall: 0.5896739130434783
+F1: 0.5521628498727736
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[219. 199.]
+ [152. 268.]]
+Accuracy: 0.581145584725537
+Precision: 0.5239234449760766
+Recall: 0.5902964959568733
+F1: 0.5551330798479087
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[209. 209.]
+ [156. 264.]]
+Accuracy: 0.5644391408114559
+Precision: 0.5
+Recall: 0.5726027397260274
+F1: 0.5338441890166028
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[243. 175.]
+ [201. 219.]]
+Accuracy: 0.5513126491646778
+Precision: 0.5813397129186603
+Recall: 0.5472972972972973
+F1: 0.5638051044083526
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[214. 204.]
+ [151. 269.]]
+Accuracy: 0.5763723150357996
+Precision: 0.5119617224880383
+Recall: 0.5863013698630137
+F1: 0.5466155810983397
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[218. 200.]
+ [151. 269.]]
+Accuracy: 0.581145584725537
+Precision: 0.5215311004784688
+Recall: 0.5907859078590786
+F1: 0.554002541296061
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[218. 200.]
+ [151. 269.]]
+Accuracy: 0.581145584725537
+Precision: 0.5215311004784688
+Recall: 0.5907859078590786
+F1: 0.554002541296061
+
+Problem Formulation 1 with A->B alpha = 0.0034040858710662654, B->A alpha = 0.010292493430446383
+Solver:  QP
+Number of Contrast Subgraphs: 3
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[249. 169.]
+ [167. 253.]]
+Accuracy: 0.5990453460620525
+Precision: 0.5956937799043063
+Recall: 0.5985576923076923
+F1: 0.5971223021582734

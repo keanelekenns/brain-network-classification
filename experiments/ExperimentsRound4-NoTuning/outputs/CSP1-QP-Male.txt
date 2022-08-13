@@ -1,0 +1,18 @@
+
+Performing Contrast Subgraph Classification on Brain Networks
+datasets/male/td/ -> Class A
+datasets/male/asd/ -> Class B
+
+Problem Formulation 1 with A->B alpha = 0.0034040858710662654, B->A alpha = 0.010292493430446383
+Solver:  QP
+Number of Contrast Subgraphs: 3
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[249. 169.]
+ [167. 253.]]
+Accuracy: 0.5990453460620525
+Precision: 0.5956937799043063
+Recall: 0.5985576923076923
+F1: 0.5971223021582734

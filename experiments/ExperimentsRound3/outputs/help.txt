@@ -1,0 +1,48 @@
+usage: cs_classification.py [-h] [-a a] [-a2 a] [-t] [-p {1,2}] [-k NUM_FOLDS]
+                            [-s {sdp,qp}] [-loo] [--plot] [-pre PLOT_PREFIX]
+                            [-cs NUM_CONTRAST_SUBGRAPHS]
+                            A_dir B_dir
+
+Graph Classification via Contrast Subgraphs
+
+positional arguments:
+  A_dir                 Filepath to class A directory containing brain network
+                        files.
+  B_dir                 Filepath to class B directory containing brain network
+                        files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a a, --alpha a       Penalty value for contrast subgraph size (varies from
+                        0 to 1). If not provided, --tune-alpha is set to true.
+  -a2 a, --alpha2 a     A secondary alpha value to use for the contrast
+                        subgraph from B to A (only applies if problem
+                        formulation is 1). Note that the original alpha is
+                        used for both contrast subgraphs if this is not
+                        provided.
+  -t, --tune-alpha      Whether or not to tune the alpha hyperparameter(s)
+                        before running the cross-validation (increases
+                        runtime). Note that alpha is automatically tuned if no
+                        alpha value is provided.
+  -p {1,2}, --problem {1,2}
+                        Problem Formulation (default: 1)
+  -k NUM_FOLDS, --num-folds NUM_FOLDS
+                        Number of times to fold data in k-fold cross
+                        validation (default: 5).
+  -s {sdp,qp}, --solver {sdp,qp}
+                        Solver to use for finding a contrast subgraph
+                        (default: sdp).
+  -loo, --leave-one-out
+                        If present, perform leave-one-out cross validation
+                        (can be computationally expensive). This will cause
+                        num-folds to be ignored.
+  --plot                If present, plots will be generated in the ./plots/
+                        directory.
+  -pre PLOT_PREFIX, --plot-prefix PLOT_PREFIX
+                        A string to prepend to plot names.
+  -cs NUM_CONTRAST_SUBGRAPHS, --num-contrast-subgraphs NUM_CONTRAST_SUBGRAPHS
+                        Number of non-overlapping contrast subgraphs to use
+                        (default: 1). When a cs is found, its nodes are
+                        removed from the difference network and the next cs is
+                        found. At the end, the contrast subgraphs are
+                        concatenated and used together.

@@ -1,58 +1,71 @@
-\def\year{2022}\relax
-\documentclass[letterpaper]{article}
-% DO NOT CHANGE THIS
-\usepackage{aaai22} % DO NOT CHANGE THIS
-\usepackage{times} % DO NOT CHANGE THIS
-\usepackage{helvet} % DO NOT CHANGE THIS
-\usepackage{courier} % DO NOT CHANGE THIS
-\usepackage[hyphens]{url} % DO NOT CHANGE THIS
-\usepackage{graphicx} % DO NOT CHANGE THIS
-\urlstyle{rm} % DO NOT CHANGE THIS
-\def\UrlFont{\rm} % DO NOT CHANGE THIS
-\usepackage{graphicx} % DO NOT CHANGE THIS
-\usepackage{natbib} % DO NOT CHANGE THIS
-\usepackage{caption} % DO NOT CHANGE THIS
-\DeclareCaptionStyle{ruled}%
-{labelfont=normalfont,labelsep=colon,strut=off}
-\frenchspacing % DO NOT CHANGE THIS
-\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
-\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
-%
-% PDF Info Is REQUIRED.
-% For /Title, write your title in Mixed Case.
-% Don’t use accents or commands. Retain the parentheses.
-% For /Author, add all authors within the parentheses,
-% separated by commas. No accents, special characters
-% or commands are allowed.
-% Keep the /TemplateVersion tag as is
-\pdfinfo{
-/Title (Explaining Models for Brain Network Classification)
-/Author (Keanelek Enns, Tengkai Yu, Alex Thomo, Venkatesh Srinivasan)
-/TemplateVersion (2022.1)
-}
+\documentclass[sigconf]{acmart}
+% % Packages
+\usepackage{soul}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
 
 % Specify path to images
 \graphicspath{ {./img/} }
 
-% NOT SURE IF THESE PACKAGES ARE ALLOWED
-\usepackage{amsmath}
-\usepackage{amsfonts}
 
-\author{
-Keanelek Enns, Tengkai Yu, Alex Thomo, Venkatesh Srinivasan\\
+\author{Keanelek Enns}
+\email{keanelekenns@uvic.ca}
+\affiliation{%
+  \institution{University of Victoria}
+  \department{Computer Science}
+  \streetaddress{PO Box 1700 STN CSC}
+  \city{Victoria}
+  \state{British Columbia}
+  \country{Canada}
+  \postcode{V8W 2Y2}
 }
-\affiliations {
-University of Victoria 3800 Finnerty Road Victoria, BC V8P 5C2\\
+
+\author{Tengkai Yu}
+\email{FIXTHIS@uvic.ca}
+\affiliation{%
+  \institution{University of Victoria}
+  \department{Computer Science}
+  \streetaddress{PO Box 1700 STN CSC}
+  \city{Victoria}
+  \state{British Columbia}
+  \country{Canada}
+  \postcode{V8W 2Y2}
+}
+
+\author{Venkatesh Srinivasan}
+\email{srinivas@uvic.ca}
+\affiliation{%
+  \institution{University of Victoria}
+  \department{Computer Science}
+  \streetaddress{PO Box 1700 STN CSC}
+  \city{Victoria}
+  \state{British Columbia}
+  \country{Canada}
+  \postcode{V8W 2Y2}
+}
+
+\author{Alex Thomo}
+\email{thomo@uvic.ca}
+\affiliation{%
+  \institution{University of Victoria}
+  \department{Computer Science}
+  \streetaddress{PO Box 1700 STN CSC}
+  \city{Victoria}
+  \state{British Columbia}
+  \country{Canada}
+  \postcode{V8W 2Y2}
 }
 
 \title{Explaining Models for Brain Network Classification}
 
 \begin{document}
-\maketitle
 
 \begin{abstract}
 
 \end{abstract}
+
+\maketitle
 
 \section{Introduction}
 
@@ -104,6 +117,12 @@ The experiments conducted and the results obtained are outlined in the Experimen
 
 % Manuscripts page: http://fcon_1000.projects.nitrc.org/indi/abide/manuscripts.html
 
+Dai and Wang worked on creating explanations that are built into a GNN \cite{dai2021} rather than trying to find an explanation after the GNN had made its classification.
+They found their method to be less biased and more computationally efficient when compared to using a post-hoc explainer such as GNN explainer.
+However, one problem is that many black box prediction models are already in use by many organizations, so they require a post-hoc solution (find citation for this, I know there is one, just can't remember which one).
+
+Wang \emph{et al.} recently proposed a method, named DHC-E, for embedding graphs in a generalizable way that does not require any hyperparameters \cite{hwang2021}. The embedding has a moderate number of dimensions depending on the graph set analyzed and is based on the h-index values of each vertex in the graph. They used principal component analysis to present the graph embeddings in two dimensions.
+
 In this paper, we are studying a special case of graph classification where all considered graphs possess the same set of vertices.
 This concept is called \emph{node identity awareness} (NIA).
 
@@ -125,7 +144,7 @@ This work focuses on explaining the decisions of black-box classifiers, but dete
 \cite{perotti2022}
 \cite{coupette2022}
 
-SCOTT WILL NEED TO WRITE ABOUT THE NEURAL NETWORK RELATED WORKS. Look at references 25, 26, 38, 42 from Lanciano's paper. Specifically 26 (https://ieeexplore.ieee.org/document/8970823) which claims 99\% accuracy with DNN approach.
+SCOTT WILL NEED TO WRITE ABOUT THE NEURAL NETWORK RELATED WORKS. Look at references 25, 26, 38, 42 from Lanciano's paper. Specifically \href{https://ieeexplore.ieee.org/document/8970823}{26} which claims 99\% accuracy with DNN approach.
 
 \section{Preliminaries}
 % http://preprocessed-connectomes-project.org/abide/index.html
@@ -209,7 +228,7 @@ Figure \ref{fig:prob2} positions some of the brain networks in two dimensions ba
 
 
 
-\section{Improvements} \label{improvements}
+\subsection{Improvements} \label{improvements}
 
 Based on our experiments, the original contrast subgraph embedding techniques are quite slow, and their accuracies are not far above the baseline accuracy (i.e. the accuracy obtained when the most dominant class is always predicted).
 Therefore we turned our attention to developing improvements for the contrast subgraph embedding technique.
@@ -224,7 +243,7 @@ However, because the goal is to find a dense subgraph in a small difference netw
 We used a Python library named CVXOPT\footnote{This library can be found at \url{https://cvxopt.org/}}.
 None of the QP solver libraries we found were able to restrict potential solution vectors to discrete values such as \{-1,1\} (i.e. out or in), so we restricted solution values to [-1,1] rounding positive values to 1 and non-positive values to -1.
 
-% I STILL NEED TO CALCULATE THIS!!!
+% TODO: I STILL NEED TO CALCULATE THIS!!!
 The speed increase that resulted from changing the solver was significant as we will discuss in the experiments section.
 
 \textbf{Local Search Optimization.}
@@ -278,12 +297,133 @@ The DE embeddings encode more information than the contrast subgraph embeddings,
 
 \section{Experiments}
 
-%Not sure if this should be mentioned here or elsewhere
-We were unable to replicate their results as much of the implementation was unavailable in the given replication package\footnote{Lanciano \emph{et al.}'s replication package can be found at \url{https://github.com/tlancian/contrast-subgraph} and was first accessed in January 2022.}.
+The data used for this study was briefly described in the preliminaries section.
+Table \ref{tab:datasets} is a recreation of Table 1 in Lanciano \emph{et al.}'s paper and gives information regarding the logical grouping of the studied individuals.
+This will give context for the experiments presented in this section.
+
+\begin{table}%[]
+    \centering
+    \caption{An overview of the datasets used. The names of each dataset (first column) are indicative of the common traits of the subjects. This grouping was used to limit the impact of confounding factors in the study. The last two columns give the number of subjects belonging to the TD and ASD classes respectively.}
+    \begin{tabular}{c c c c}
+        \hline
+        Dataset & Description & TD & ASD \\
+        \hline
+        children &  Age $\leq$ 9 & 52 & 49 \\
+        adolescents &  Age $\in [15,20]$ & 121 & 116 \\
+        eyesclosed &  Eyes closed during scanning & 158 & 136 \\
+        male &  Male individuals & 418 & 420 \\
+        \hline
+    \end{tabular}
+    \label{tab:datasets}
+\end{table}
+
+\subsection{Replication}
+
+We began our experiments with an attempt to replicate the results of Lanciano \emph{et al.} using the replication package provided (links to their repository and our repository can be found in appendix \ref{artifacts}).
+However, unfortunately, no code was provided (by the time of writing) for evaluating the classifier as discussed in section 5.1 of the original paper.
+Furthermore, the code that was present for extracting a contrast subgraph was not conducive to large scale experiments.
+
+With this knowledge, we decided to first rewrite and optimize the existing code such that it could be run repeatedly for our experiments.
+
+The most notable inefficiency was the writing and reading of multiple files and the use of subprocess calls to multiple scripts written in Python and Matlab.
+We replaced the Matlab SDP solver, which was reused from the work of Cadena \emph{et al.} \cite{cadena2016}, with a Python implementation using the CVXPY library\footnote{This library can be found at \url{https://www.cvxpy.org/}.}.
+The solvers were tested to ensure that the same inputs produced the same outputs (so as to prevent any logical changes from this optimization).
+
+Rather than passing data through the writing and reading of files and the use of subprocess calls to run new scripts, we modified the scripts to directly accept such data as arguments.
+We then upgraded the code from Python 2.7 to 3.8 as well as removed unnecessary libraries.
+After these changes, we obtained a logically equivalent implementation of the original code with increased computational efficiency.
+
+However, only finding CSs does not constitute a graph embedding technique.
+These CSs must be used to translate a brain network into a vector or point.
+Because this translation was not present in the repository, we also created the necessary components for the embedding such as inducing subgraphs, counting overlap between contrast subgraphs and new brain networks, and calculating the $L_1$ norm as indicated by the original paper.
+
+Though many components of the original scripts were modified, it is worth noting that many components were reused, and the modifications were tested to ensure logical equivalency.
+
+After this, we developed a module for evaluating the embedding technique using five-fold cross validation.
+Unfortunately, the results did not agree with what had been reported by Lanciano \emph{et al.}
+This is discussed further in the results section.
+
+\subsection{Evaluation} \label{evaluation}
+
+To ensure all techniques were evaluated fairly, we developed a common module to run the cross validation tests.
+This required that each embedding technique conformed to a common interface:
+
+\begin{itemize}
+    \item \textbf{Inputs:} Training graphs, training labels, testing graphs, and any parameters specific to the embedding technique.
+    \item \textbf{Outputs:} Training points and testing points (the results of translating each brain network into a point/vector).
+\end{itemize}
+
+The testing module takes care of splitting the brain networks into training and testing sets.
+After receiving the embedded graphs as points, it shifts the points such that the mean value of each dimension becomes zero, and it scales the points such that a standard deviation is one unit.
+
+The training points are then used to train a classifier, and the classifier is used to predict the class labels of the testing points.
+Note that Lanciano \emph{et al.} do not specify what classifier they used for predicting the graph labels of their embedded graphs.
+We therefore used the \href{https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html}{LinearSVC classifier} provided by the popular sklearn library as a common choice for all techniques to ensure fairness.
+
+Each iteration of the cross validation routine generates three plots with the following information:
+\begin{enumerate}
+    \item Training points according to their class labels.
+    \item Test points according to their class labels.
+    \item Test points according to the predictions that are made.
+\end{enumerate}
+Furthermore, the number of folds to use is configurable, and there is an option to perform leave-one-out cross validation.
+Finally, a cumulative confusion matrix is derived as the sum of the confusion matrices in each of the cross validation iterations and used to calculate the classifier's average accuracy, precision, recall, and f-1 score.
+
+\subsection{Results} \label{results}
+
+Various experiments were conducted during the course of this study.
+However, due to the computation time required to evaluate our recreation of the original paper's method, it was not possible to compare results of more rigorous experiments (such as leave-one-out cross validation) for all methods.
+
+Table \ref{tab:results} summarizes the results of the fourth round of experiments.
+No tuning was performed in this round, however, tuning from the previous rounds was used to select the best parameter values for each method.
+Five fold cross validation was performed for each method with an 80:20 train to test ratio.
+
+To see the full results of all the experiment rounds, see the \emph{experiments} directory in this paper's repository (found in appendix \ref{artifacts}).
+
+\begin{table*}[t]
+    \centering
+    \caption{Classifier Results. \hl{add more clarifying info}.}
+    \begin{tabular}{c c c c c c c}
+        \hline
+        Dataset & Embedding Technique & Runtime (seconds) & Accuracy (\%) & Precision (\%) & Recall (\%) & F1-Score (\%)\\
+        \hline
+        children & CS-SDP-P1 & 201.9 & 61.39 & 69.23 & 61.02 & 64.86 \\
+        baseline accuracy = 51.49\% & CS-SDP-P2 & 22.3 & 56.44 & 69.23 & 56.25 & 62.07 \\
+        & CS-QP-P1 & 7.4 & 70.30 & 76.92 & 68.97 & 72.73 \\
+        & CS-QP-P2 & 4.2 & 65.34 & 73.08 & 64.41 & 68.47 \\
+        & DE & 3.9 & 62.38 & 75.00 & 60.94 & 67.24 \\
+        \hline
+        adolescents & CS-SDP-P1 & 1 & 1 & 1 & 1 & 1 \\
+        baseline accuracy = 51.05\% & CS-SDP-P2 & 1 & 1 & 1 & 1 & 1 \\
+        & CS-QP-P1 & 1 & 1 & 1 & 1 & 1 \\
+        & CS-QP-P2 & 1 & 1 & 1 & 1 & 1 \\
+        & DE & 1 & 1 & 1 & 1 & 1 \\
+        \hline
+        eyesclosed & CS-SDP-P1 & 1 & 1 & 1 & 1 & 1 \\
+        baseline accuracy = 53.74\% & CS-SDP-P2 & 1 & 1 & 1 & 1 & 1 \\
+        & CS-QP-P1 & 1 & 1 & 1 & 1 & 1 \\
+        & CS-QP-P2 & 1 & 1 & 1 & 1 & 1 \\
+        & DE & 1 & 1 & 1 & 1 & 1 \\
+        \hline
+        male & CS-SDP-P1 & 1 & 1 & 1 & 1 & 1 \\
+        baseline accuracy = 50.12\% & CS-SDP-P2 & 1 & 1 & 1 & 1 & 1 \\
+        & CS-QP-P1 & 1 & 1 & 1 & 1 & 1 \\
+        & CS-QP-P2 & 1 & 1 & 1 & 1 & 1 \\
+        & DE & 1 & 1 & 1 & 1 & 1 \\
+        \hline
+    \end{tabular}
+    \label{tab:results}
+\end{table*}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth, keepaspectratio=true]{test.png}
+    \caption{\hl{This is just a test image, we need to create proper images with proper labels}}
+    \label{fig:my_label}
+\end{figure}
 
 
-
-\section{Discussion}
+\section{Discussion}\label{discussion}
 \textbf{Discussion of Node-Identity Awareness and its importance with respect to how we treat the data. We do not need to treat it strictly like a graph as lanciano et al do.}
 
 More often than using brain scans, practitioners use behavioural information to diagnose ASD \cite{lord2006, johnson2007, dsm52013}.
@@ -293,6 +433,33 @@ If we wish to ensure the accuracy of AI models when providing diagnoses, it woul
 
 Considering ASD is a spectrum, and can affect individuals at very different levels, it might not make sense to view this as a binary classification problem.
 Instead, it could be beneficial to break the disorder into multiple additional categories to prevent the biases of ML models from favouring certain expressions of ASD.
+
+Lanciano \emph{et al.} showed that the degrees of each vertex in the studied brain networks did not vary significantly between the two classes \cite{lanciano2020},
+yet the contrast subgraphs are defined as a set of vertices, and every edge induced by these vertices is used for classification.
+Instead, we should look solely at edges that are important for distinguishing between the classes.
+
+The discriminative edge method considers the most important edges in each class (defined as having the most positive and most negative weights in the difference network) when creating an embedding.
+Additionally, it considers the brain network as a whole in its third dimension, which likely captures more interesting information with respect to complex connections in the brain.
+However, it does not specifically identify higher order structures in the brain networks that may be leading to the DNN's success.
+
+It was observed in a number of experiments that the local search algorithm would find a subgraph that was significantly different than (sometimes entirely disjoint from) the subgraph found by the SDP solver despite using the SDP solver's solution as a starting point.
+This seems to imply that the local search algorithm may have done most of the work in finding the densest subgraph, and that the SDP solving step may have been extraneous, though further investigation would be required to verify this.
+
+\subsection{Limitations and Threats to Validity.}
+This study was limited primarily by the data set used.
+In many machine learning applications, a large volume of data is needed to adequately train and test new models.
+With a small data set, it is difficult to know how generalizable any of the discussed methods are to new brain networks that we wish to classify.
+Additionally, the way the data set was created and the individuals that were studied have a large impact on the validity of the classification methods developed.
+Elkan gave a helpful discussion of potential pitfalls regarding evaluating classifiers and the way data is gathered \cite{elkan2012}.
+In this case, the limitations in data set size and quantity are due to the costly nature of creating such brain networks as individuals need to undergo a series of scans and time series of these scans are used to create the resultant brain network \cite{lanciano2020}.
+Furthermore, the ratio of the studied classes is imbalanced when compared to the true ratio of individuals with ASD.
+
+Autism Spectrum Disorder is a very complex disorder with unclear definitions, and it may manifest in various different ways [\hl{perhaps this belongs in the intro when describing why the problem is hard?}].
+Above all this, the brain is a highly complex organ that is not fully understood.
+The brains of individuals are unique and develop in complex manners.
+There may be a plethora of confounding factors that have an effect on the classification of such networks with respect to identifying ASD in individuals.
+
+
 
 
 
@@ -312,12 +479,23 @@ Instead, it could be beneficial to break the disorder into multiple additional c
     \item Run simplified classifier alongside black box classifier, and report on the instances when they disagree.
 \end{itemize}
 
+Future work should attempt to identify higher order structures (such as triangles, k-clusters, or graphlets of varying size and shapes) as a means of embedding.
+This could be done by identifying prominent structures in each summary graph (perhaps after thresholding the edge weights), eliminating structures common to both, and counting the number of overlapping structures that a new brain network has in common with each class.
+The challenge associated with this technique comes with the computational complexity of enumerating such high order structures.
 
+As discussed in section \ref{discussion}, this study should be replicated on additional data sets to further test its validity.
 
 
 \appendix
 
+\section{Artifacts} \label{artifacts}
+
+Lanciano \emph{et al.}'s replication package can be found at \url{https://github.com/tlancian/contrast-subgraph} and was first accessed in January 2022.
+
+Our replication package can be found at \url{https://github.com/keanelekenns/brain-network-classification}.
+
 % References and End of Paper
 % These lines must be placed at the end of your paper
-\bibliography{refs}
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs.bib}
 \end{document}

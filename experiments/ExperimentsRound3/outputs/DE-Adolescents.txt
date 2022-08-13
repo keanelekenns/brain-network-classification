@@ -1,0 +1,44 @@
+Tuning number of edges...
+Trying num_edges = 1... accuracy = 0.6118143459915611
+Trying num_edges = 2... accuracy = 0.5949367088607594
+Trying num_edges = 3... accuracy = 0.620253164556962
+Trying num_edges = 4... accuracy = 0.620253164556962
+Trying num_edges = 5... accuracy = 0.6160337552742616
+Trying num_edges = 6... accuracy = 0.6244725738396625
+Trying num_edges = 7... accuracy = 0.6455696202531646
+Trying num_edges = 8... accuracy = 0.6286919831223629
+Trying num_edges = 9... accuracy = 0.6244725738396625
+Trying num_edges = 10... accuracy = 0.6244725738396625
+Trying num_edges = 11... accuracy = 0.6118143459915611
+Trying num_edges = 12... accuracy = 0.620253164556962
+Trying num_edges = 13... accuracy = 0.6371308016877637
+Trying num_edges = 14... accuracy = 0.6329113924050633
+Trying num_edges = 15... accuracy = 0.6371308016877637
+Trying num_edges = 16... accuracy = 0.6455696202531646
+Trying num_edges = 17... accuracy = 0.6455696202531646
+Trying num_edges = 18... accuracy = 0.6413502109704642
+Trying num_edges = 19... accuracy = 0.6244725738396625
+Trying num_edges = 20... accuracy = 0.620253164556962
+Trying num_edges = 21... accuracy = 0.6160337552742616
+Trying num_edges = 22... accuracy = 0.6160337552742616
+Trying num_edges = 23... accuracy = 0.6160337552742616
+Trying num_edges = 24... accuracy = 0.6118143459915611
+Trying num_edges = 25... accuracy = 0.6033755274261603
+Trying num_edges = 26... accuracy = 0.6033755274261603
+Trying num_edges = 27... accuracy = 0.6075949367088608
+Trying num_edges = 28... accuracy = 0.6160337552742616
+Trying num_edges = 29... accuracy = 0.6118143459915611
+Trying num_edges = 30... accuracy = 0.6160337552742616
+
+Performing Discriminitive Edge Classification on Brain Networks
+Number of Edges:  7
+
+Performing 5-fold cross validation...
+
+Metrics using cumulative confusion matrix:
+[[85. 36.]
+ [48. 68.]]
+Accuracy: 0.6455696202531646
+Precision: 0.7024793388429752
+Recall: 0.6390977443609023
+F1: 0.6692913385826771
