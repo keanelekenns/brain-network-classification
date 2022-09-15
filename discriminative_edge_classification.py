@@ -15,11 +15,11 @@ def tune_num_edges(graphs, labels):
             num_edges = i
     return num_edges
 
-def discriminative_edges_graphs_to_points(train_graphs, train_labels, test_graphs, num_edges):
+def discriminative_edges_graphs_to_points(train_graphs, train_labels, test_graphs, a_label, b_label, num_edges):
     
     # Create and Write Summary Graphs
-    summary_A = utils.summary_graph(train_graphs[np.where(train_labels == utils.A_LABEL)])
-    summary_B = utils.summary_graph(train_graphs[np.where(train_labels == utils.B_LABEL)])
+    summary_A = utils.summary_graph(train_graphs[np.where(train_labels == a_label)])
+    summary_B = utils.summary_graph(train_graphs[np.where(train_labels == b_label)])
         
     # Get the difference network between the edge weights in group A and B
     # Note that (u,v) is the same as (v,u), so we extract the upper triangle of the matrix
@@ -45,6 +45,8 @@ def main():
     parser = argparse.ArgumentParser(description='Graph Classification using Discriminative Edges')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
+    parser.add_argument('a_label', help='Label for class A', type=str, default="A")
+    parser.add_argument('b_label', help='Label for class B', type=str, default="B")
     parser.add_argument('-n','--num-edges', help='Number of positive and negative edges to use for classification.', type=int)
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-loo', '--leave-one-out', help='If present, perform leave-one-out cross validation (can be computationally expensive). This will cause num-folds to be ignored.', default=False, action="store_true")
@@ -58,7 +60,7 @@ def main():
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
-    graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
+    graphs, labels = utils.label_and_concatenate_graphs(graphs_A, graphs_B, a_label=args.a_label, b_label=args.b_label)
 
     num_edges = args.num_edges
     if not num_edges or args.tune:

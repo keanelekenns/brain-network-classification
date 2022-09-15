@@ -6,7 +6,7 @@ from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
-def classify(inputs, labels, inputs_to_points, num_folds=5,
+def classify(inputs, labels, inputs_to_points, a_label, b_label, num_folds=5,
                 leave_one_out=False, plot_prefix="", random_state=23, supress_output=False, **kwargs):
     # Cumulative confusion matrix is used to report on classifier metrics over all of the k folds.
     cumulative_confusion_matrix = np.zeros((2,2))
@@ -33,7 +33,7 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
 
         # Call a custom function that translates whatever inputs are given
         # into points of a desired dimension (likely 2D)
-        train_points, test_points = inputs_to_points(train_inputs, train_labels, test_inputs, **kwargs)
+        train_points, test_points, axes_labels = inputs_to_points(train_inputs, train_labels, test_inputs, a_label, b_label, **kwargs)
 
         # Scale the returned points
         points = np.concatenate((train_points, test_points))
@@ -51,11 +51,11 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
         else:
             if plot:
                 utils.plot_points(train_points, train_labels,
-                            "plots/{}-{}-train-labels".format(plot_prefix,i))
+                            "plots/{}-{}-train-labels".format(plot_prefix,i), axes_labels=axes_labels, a_label=a_label, b_label=b_label)
                 utils.plot_points(test_points, test_pred,
-                            "plots/{}-{}-test-predictions".format(plot_prefix,i))
+                            "plots/{}-{}-test-predictions".format(plot_prefix,i), axes_labels=axes_labels, a_label=a_label, b_label=b_label)
                 utils.plot_points(test_points, test_labels,
-                            "plots/{}-{}-test-labels".format(plot_prefix,i))
+                            "plots/{}-{}-test-labels".format(plot_prefix,i), axes_labels=axes_labels, a_label=a_label, b_label=b_label)
 
             cumulative_confusion_matrix += confusion_matrix(test_labels, test_pred)
         
@@ -67,9 +67,9 @@ def classify(inputs, labels, inputs_to_points, num_folds=5,
         loo_labels = np.array(loo_labels)
         if plot:
             utils.plot_points(loo_points, loo_predictions,
-                    "plots/{}-{}-LOO-predictions".format(plot_prefix,i))
+                    "plots/{}-{}-LOO-predictions".format(plot_prefix,i), axes_labels=axes_labels, a_label=a_label, b_label=b_label)
             utils.plot_points(loo_points, loo_labels,
-                    "plots/{}-{}-LOO-labels".format(plot_prefix,i))
+                    "plots/{}-{}-LOO-labels".format(plot_prefix,i), axes_labels=axes_labels, a_label=a_label, b_label=b_label)
         cumulative_confusion_matrix = confusion_matrix(loo_labels, loo_predictions)
     
     accuracy, precision, recall, f1 = utils.evaluate_classifier(cumulative_confusion_matrix)

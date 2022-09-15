@@ -35,10 +35,10 @@ def get_triangles(graph):
                 triangles += [(i,j,k) for k in nodes[np.where(neighbours==2)]]
     return np.array(triangles)
 
-def triangles_graphs_to_points(train_graphs, train_labels, test_graphs):
+def triangles_graphs_to_points(train_graphs, train_labels, test_graphs, a_label, b_label):
     # Create and Write Summary Graphs
-    graphs_a = train_graphs[np.where(train_labels == utils.A_LABEL)]
-    graphs_b = train_graphs[np.where(train_labels == utils.B_LABEL)]
+    graphs_a = train_graphs[np.where(train_labels == a_label)]
+    graphs_b = train_graphs[np.where(train_labels == b_label)]
     summary_A = utils.summary_graph(graphs_a)
     summary_B = utils.summary_graph(graphs_b)
 
@@ -81,6 +81,8 @@ def main():
     parser = argparse.ArgumentParser(description='Graph Classification via Contrast Subgraphs')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
+    parser.add_argument('a_label', help='Label for class A', type=str, default="A")
+    parser.add_argument('b_label', help='Label for class B', type=str, default="B")
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-loo', '--leave-one-out', help='If present, perform leave-one-out cross validation (can be computationally expensive). This will cause num-folds to be ignored.', default=False, action="store_true")
     parser.add_argument('-pre','--plot-prefix', help='A string to prepend to plot names. If present, plots will be generated in the ./plots/ directory. Otherwise, no plots will be generated', type=str, default="")
@@ -93,7 +95,7 @@ def main():
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
-    graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
+    graphs, labels = utils.label_and_concatenate_graphs(graphs_A, graphs_B, a_label=args.a_label, b_label=args.b_label)
 
     classification.classify(graphs, labels, triangles_graphs_to_points,
                             args.num_folds, args.leave_one_out, args.plot_prefix, random_state=23)

@@ -23,7 +23,7 @@ def graphs_to_points(graphs, cliques_a, cliques_b):
     
     return np.array(list(map(lambda graph: graph_to_point(graph, cliques_a, cliques_b), graphs)))
 
-def classify(graphs, labels, num_folds=5,
+def classify(graphs, labels, a_label, b_label, num_folds=5,
              prefix="", disable_plotting=False):
     # Variables used for reporting at the end
 
@@ -39,8 +39,8 @@ def classify(graphs, labels, num_folds=5,
         train_graphs, test_graphs = graphs[train_index], graphs[test_index]
         train_labels, test_labels = labels[train_index], labels[test_index]
         # Create and Write Summary Graphs
-        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == utils.A_LABEL)])
-        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == utils.B_LABEL)])
+        summary_A = utils.summary_graph(train_graphs[np.where(train_labels == a_label)])
+        summary_B = utils.summary_graph(train_graphs[np.where(train_labels == b_label)])
         
         summary_A = np.triu(summary_A, k=1)
         temp_a = np.zeros(summary_A.shape)
@@ -92,6 +92,8 @@ def main():
     parser = argparse.ArgumentParser(description='Graph Classification using Discriminative Edges')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
+    parser.add_argument('a_label', help='Label for class A', type=str, default="A")
+    parser.add_argument('b_label', help='Label for class B', type=str, default="B")
     parser.add_argument('-n','--num-edges', help='Number of positive and negative edges to use for classification (default: 25).', type=int, default = 25)
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-l', '--learn', help='If present, important edges from previous folds will be intersected with each new set of important edges.', default=False, action="store_true")
@@ -104,7 +106,7 @@ def main():
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
-    graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
+    graphs, labels = utils.label_and_concatenate_graphs(graphs_A, graphs_B, a_label=args.a_label, b_label=args.b_label)
 
     print("\nPerforming {}-fold cross validation...".format(args.num_folds))
     classify(graphs, labels, args.num_folds,

@@ -49,10 +49,10 @@ def cs_p2_graphs_to_points(graphs, contrast_subgraph, summary_A, summary_B):
                              graphs)))
 
 
-def tune_alpha_dsi(graphs, labels, initial_alpha=None, initial_alpha2=None,
+def tune_alpha_dsi(graphs, labels, a_label, b_label, initial_alpha=None, initial_alpha2=None,
                problem=1, solver=dense_subgraph.sdp, plot=False):
-    graphs_a = graphs[np.where(labels == utils.A_LABEL)]
-    graphs_b = graphs[np.where(labels == utils.B_LABEL)]
+    graphs_a = graphs[np.where(labels == a_label)]
+    graphs_b = graphs[np.where(labels == b_label)]
     summary_A = utils.summary_graph(graphs_a)
     summary_B = utils.summary_graph(graphs_b)
     diff_a_b = summary_A - summary_B
@@ -150,11 +150,11 @@ def tune_alpha_accuracy(graphs, labels, initial_alpha=None, initial_alpha2=None,
         return
     
 
-def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, alpha=None, alpha2=None, percentile=70, percentile2=None,
-                                        problem=1, solver=dense_subgraph.sdp, important_nodes=[], num_cs=1):
+def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, a_label, b_label, alpha=None, alpha2=None, percentile=70, percentile2=None,
+                                        problem=1, solver=dense_subgraph.sdp, num_cs=1):
     # Create and Write Summary Graphs
-    summary_A = utils.summary_graph(train_graphs[np.where(train_labels == utils.A_LABEL)])
-    summary_B = utils.summary_graph(train_graphs[np.where(train_labels == utils.B_LABEL)])
+    summary_A = utils.summary_graph(train_graphs[np.where(train_labels == a_label)])
+    summary_B = utils.summary_graph(train_graphs[np.where(train_labels == b_label)])
 
     nodes = np.arange(summary_A.shape[0])
     train_points = np.zeros((train_graphs.shape[0], 2))
@@ -169,6 +169,8 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
         cs_b_a = np.array([], dtype=int)
         diff_a_b = summary_A - summary_B
         diff_b_a = summary_B - summary_A
+        axes_labels = [f"Number of edges overlapping with CS {a_label}-{b_label}",
+                       f"Number of edges overlapping with CS {b_label}-{a_label}"]
 
         for i in range(num_cs):
             masked_diff_a_b = utils.induce_subgraph(diff_a_b, nodes[node_mask_a_b])
@@ -205,11 +207,13 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
                     Stopped at Contrast Subgraph {}.".format(i+1))
                 break
 
-        return train_points, test_points
+        return train_points, test_points, axes_labels
     else:
         node_mask = np.array([True]*nodes.shape[0])
         cs = np.array([], dtype=int)
         diff = abs(summary_A - summary_B)
+        axes_labels = [r"L1 norm distance from $G^{%s}$"%a_label,
+                       r"L1 norm distance from $G^{%s}$"%b_label]
         
         for i in range(num_cs):
             masked_diff = utils.induce_subgraph(diff, nodes[node_mask])
@@ -231,12 +235,14 @@ def contrast_subgraph_graphs_to_points(train_graphs, train_labels, test_graphs, 
                     Stopped at Contrast Subgraph {}.".format(i+1))
                 break
         
-        return train_points, test_points
+        return train_points, test_points, axes_labels
 
 def main():
     parser = argparse.ArgumentParser(description='Graph Classification via Contrast Subgraphs')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
+    parser.add_argument('--a-label', help='Label for class A', type=str, default="A")
+    parser.add_argument('--b-label', help='Label for class B', type=str, default="B")
     parser.add_argument('-a','--alpha', help='Penalty value for contrast subgraph size (varies from 0 to 1).', type=float, metavar='a')
     parser.add_argument('-a2','--alpha2', help='A secondary alpha value to use for the contrast subgraph from B to A \
             (only applies if problem formulation is 1). Note that the original alpha is used for both contrast subgraphs \
@@ -294,7 +300,7 @@ def main():
     graphs_A = utils.get_graphs_from_files(args.A_dir)
     graphs_B = utils.get_graphs_from_files(args.B_dir)
 
-    graphs, labels = utils.get_AB_labels(graphs_A, graphs_B)
+    graphs, labels = utils.label_and_concatenate_graphs(graphs_A, graphs_B, a_label=args.a_label, b_label=args.b_label)
 
     if tune_alpha:
         print("Tuning alpha value(s)...")
@@ -316,7 +322,7 @@ def main():
 
     print("Solver: ", args.solver.upper())
     print("Number of Contrast Subgraphs: {}".format(args.num_contrast_subgraphs))
-    classification.classify(graphs, labels, contrast_subgraph_graphs_to_points,
+    classification.classify(graphs, labels, contrast_subgraph_graphs_to_points, args.a_label, args.b_label,
                             args.num_folds, args.leave_one_out, args.plot_prefix, random_state=23,
                             alpha=alpha, alpha2=alpha2, percentile=percentile, percentile2=percentile2,
                             problem=args.problem, solver=solver, num_cs=args.num_contrast_subgraphs)

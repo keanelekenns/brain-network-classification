@@ -3,9 +3,6 @@ import os
 from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
 
-A_LABEL = "A"
-B_LABEL = "B"
-
 def contrast_subgraph_overlap(subject_brain, contrast_subgraph):
     """
     Inputs:
@@ -113,11 +110,11 @@ def evaluate_classifier(confusion_matrix):
 
     return accuracy, precision, recall, f1
 
-def plot_points(points, labels, plotname):
+def plot_points(points, labels, plotname, axes_labels, a_label, b_label):
     x_vals = points[:,0]
-    a_indices = np.where(labels == A_LABEL)
-    b_indices = np.where(labels == B_LABEL)
-    if points.shape[1] == 3:
+    a_indices = np.where(labels == a_label)
+    b_indices = np.where(labels == b_label)
+    if points.shape[1] == 3 and len(axes_labels) == 3:
         fig = plt.figure()
         ax = plt.axes(projection ='3d')
 
@@ -127,21 +124,27 @@ def plot_points(points, labels, plotname):
         x_vals_B, y_vals_B, z_vals_B = x_vals[b_indices], y_vals[b_indices], z_vals[b_indices]
         ax.scatter(x_vals_A, y_vals_A, z_vals_A, c="#5a7bfc")
         ax.scatter(x_vals_B, y_vals_B, z_vals_B, c="#fcaa1b")
+        plt.xlabel(axes_labels[0])
+        plt.ylabel(axes_labels[1])
+        plt.zlabel(axes_labels[2])
         plt.savefig(plotname)
         return
-    elif points.shape[1] == 1:
+    elif points.shape[1] == 2 and len(axes_labels) == 2:
+        y_vals = points[:,1]
+        x_vals_A, y_vals_A = x_vals[a_indices], y_vals[a_indices]
+        x_vals_B, y_vals_B = x_vals[b_indices], y_vals[b_indices]
+    elif points.shape[1] == 1 and len(axes_labels) == 1:
         x_vals_A = x_vals[a_indices]
         y_vals_A = np.zeros(x_vals_A.shape)
         x_vals_B = x_vals[b_indices]
         y_vals_B = np.zeros(x_vals_B.shape)
-    elif points.shape[1] == 2:
-        y_vals = points[:,1]
-        x_vals_A, y_vals_A = x_vals[a_indices], y_vals[a_indices]
-        x_vals_B, y_vals_B = x_vals[b_indices], y_vals[b_indices]
 
     fig, ax = plt.subplots()
-    ax.scatter(x_vals_A, y_vals_A, c="#5a7bfc")
-    ax.scatter(x_vals_B, y_vals_B, c="#fcaa1b")
+    ax.scatter(x_vals_A, y_vals_A, c="#5a7bfc", marker="+", label=a_label)
+    ax.scatter(x_vals_B, y_vals_B, c="#fcaa1b", marker="x", label=b_label)
+    ax.legend()
+    plt.xlabel(axes_labels[0])
+    plt.ylabel(axes_labels[1])
     plt.savefig(plotname)
 
 # TODO: This function needs work.
@@ -161,7 +164,7 @@ def plot_decision_boundary(pred_func, X, y, plotname):
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
     plt.savefig(plotname)
 
-def get_AB_labels(graphs_A, graphs_B):
+def label_and_concatenate_graphs(graphs_A, graphs_B, a_label, b_label):
     """
     Merge graph arrays together and return corresponding labels
     Inputs:
@@ -171,8 +174,8 @@ def get_AB_labels(graphs_A, graphs_B):
         graphs - A 3D numpy array representing a group of brain graphs in classes A and B.
         labels - A 1D numpy array holding class labels for each graph in graphs.
     """
-    labels_A = [A_LABEL]*len(graphs_A)
-    labels_B = [B_LABEL]*len(graphs_B)
+    labels_A = [a_label]*len(graphs_A)
+    labels_B = [b_label]*len(graphs_B)
     graphs = np.concatenate((graphs_A, graphs_B))
     labels = np.array(labels_A + labels_B)
     return graphs, labels
