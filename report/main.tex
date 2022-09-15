@@ -338,10 +338,13 @@ These CSs must be used to translate a brain network into a vector or point.
 Because this translation was not present in the repository, we also created the necessary components for the embedding such as inducing subgraphs, counting overlap between contrast subgraphs and new brain networks, and calculating the $L_1$ norm as indicated by the original paper.
 
 Though many components of the original scripts were modified, it is worth noting that many components were reused, and the modifications were tested to ensure logical equivalency.
-
 After this, we developed a module for evaluating the embedding technique using five-fold cross validation.
-Unfortunately, the results did not agree with what had been reported by Lanciano \emph{et al.}
-This is discussed further in the results section.
+
+We then ran our experiments using the alpha parameters reported by Lanciano \emph{et al.}, but the resulting constrast subgraphs were completely empty due to alpha being too large.
+Later in our experiments, the authors released a clarification that the reported values were percentiles, not alpha values.
+These percentiles correspond to the ratio of edges that are shifted to be considered detrimental to the CS objective (e.g. a percentile value of 70 indicates that we should shift the edge weights down such that only the heaviest 30\% of the edges retain a positive edge weight).
+At this point, we had already tuned alpha for their technique, but we returned to test the percentile values reported.
+Unfortunately, the results did not agree with what they reported, and our tuning was more beneficial to their technique.
 
 \subsection{Evaluation} \label{evaluation}
 
@@ -371,56 +374,74 @@ Finally, a cumulative confusion matrix is derived as the sum of the confusion ma
 
 \subsection{Results} \label{results}
 
-Various experiments were conducted during the course of this study.
-However, due to the computation time required to evaluate our recreation of the original paper's method, it was not possible to compare results of more rigorous experiments (such as leave-one-out cross validation) for all methods.
+After performing the replication of Lanciano \emph{et al.}'s paper to the best of our abilities, we obtained significantly lower accuracies than those reported in Table 2 of their paper.
+We performed three rounds of five fold cross validation using the reported parameter values. We briefly report the averaged replication results with their standard deviations in table \ref{tab:replication}.
 
-Table \ref{tab:results} summarizes the results of the fourth round of experiments.
-No tuning was performed in this round, however, tuning from the previous rounds was used to select the best parameter values for each method.
-Five fold cross validation was performed for each method with an 80:20 train to test ratio.
-
-To see the full results of all the experiment rounds, see the \emph{experiments} directory in this paper's repository (found in appendix \ref{artifacts}).
+We were able to produce better results than this with our own parameter tuning, but in either case, the accuracies are well below those reported in Lanciano \emph{et al.}'s work.
 
 \begin{table*}[t]
     \centering
-    \caption{Classifier Results. \hl{add more clarifying info}.}
+    \caption{Replication results. This is modelled after Table 2 in Lanciano \emph{et al.}'s paper and reports average accuracies with their relative standard deviation.}
+    \begin{tabular}{c c c c c}
+        \hline
+          & Children & Adolescents & EyesClosed & Male\\
+        CS-P1 & 0.49 $\pm$ 0.01 & 0.53 $\pm$ 0.01 & 0.49 $\pm$ 0.01 & 0.58 $\pm$ 0.02\\
+        CS-P2 & 0.58 $\pm$ 0.03 & 0.54 $\pm$ 0.01 & 0.56 $\pm$ 0.00 & 0.60 $\pm$ 0.00\\
+        \hline
+    \end{tabular}
+    \label{tab:replication}
+\end{table*}
+
+Numerous empirical experiments were conducted during the course of this study.
+However, due to the computation time required to evaluate our recreation of Lanciano \emph{et al.}'s method, it was not possible to compare results of more rigorous experiments (such as leave-one-out cross validation) for all methods.
+
+Table \ref{tab:results} summarizes the results of the fourth round of experiments.
+No tuning was performed in this round, however, tuning from the previous rounds was used to select the best parameter values for each method.
+Five fold cross validation was performed for each method on each data set with an 80:20 train to test ratio.
+
+To see the full results of all the experiment rounds and the parameters used, see the \emph{experiments} directory in this paper's repository (found in appendix \ref{artifacts}) as well as the \emph{Replication} directory within it for the replication results previously mentioned.
+
+\begin{table*}[t]
+    \centering
+    \caption{Classifier Results. CS-SDP refers to our replication of Lanciano \emph{et al.}'s method (with associated P1 and P2 variations). CS-QP refers to our method with all mentioned improvements (QP solver, top-k CSs, and improved local search). DE refers to Discriminative edges. The baseline accuracy represents the accuracy of a classifier that always predicts the most common class in the data set.}
     \begin{tabular}{c c c c c c c}
         \hline
         Dataset & Embedding Technique & Runtime (seconds) & Accuracy (\%) & Precision (\%) & Recall (\%) & F1-Score (\%)\\
         \hline
         children & CS-SDP-P1 & 201.9 & 61.39 & 69.23 & 61.02 & 64.86 \\
         baseline accuracy = 51.49\% & CS-SDP-P2 & 22.3 & 56.44 & 69.23 & 56.25 & 62.07 \\
-        & CS-QP-P1 & 7.4 & 70.30 & 76.92 & 68.97 & 72.73 \\
+        & CS-QP-P1 & 7.4 & \textbf{70.30} & \textbf{76.92} & \textbf{68.97} & \textbf{72.73} \\
         & CS-QP-P2 & 4.2 & 65.34 & 73.08 & 64.41 & 68.47 \\
-        & DE & 3.9 & 62.38 & 75.00 & 60.94 & 67.24 \\
+        & DE & \textbf{3.9} & 62.38 & 75.00 & 60.94 & 67.24 \\
         \hline
-        adolescents & CS-SDP-P1 & 1 & 1 & 1 & 1 & 1 \\
-        baseline accuracy = 51.05\% & CS-SDP-P2 & 1 & 1 & 1 & 1 & 1 \\
-        & CS-QP-P1 & 1 & 1 & 1 & 1 & 1 \\
-        & CS-QP-P2 & 1 & 1 & 1 & 1 & 1 \\
-        & DE & 1 & 1 & 1 & 1 & 1 \\
+        adolescents & CS-SDP-P1 & 128.8 & 58.65 & 60.33 & 59.35 & 59.84 \\
+        baseline accuracy = 51.05\% & CS-SDP-P2 & 26.2 & 58.65 & 57.02 & 60.00 & 58.47 \\
+        & CS-QP-P1 & 9.1 & 61.60 & 66.12 & 61.54 & 63.75 \\
+        & CS-QP-P2 & \textbf{5.1} & 63.71 & 66.94 & 63.78 & 65.32 \\
+        & DE & 5.8 & \textbf{64.56} & \textbf{70.25} & \textbf{63.91} & \textbf{66.93} \\
         \hline
-        eyesclosed & CS-SDP-P1 & 1 & 1 & 1 & 1 & 1 \\
-        baseline accuracy = 53.74\% & CS-SDP-P2 & 1 & 1 & 1 & 1 & 1 \\
-        & CS-QP-P1 & 1 & 1 & 1 & 1 & 1 \\
-        & CS-QP-P2 & 1 & 1 & 1 & 1 & 1 \\
-        & DE & 1 & 1 & 1 & 1 & 1 \\
+        eyesclosed & CS-SDP-P1 & 51.3 & 52.38 & 56.33 & 55.63 & 55.97 \\
+        baseline accuracy = 53.74\% & CS-SDP-P2 & 16.3 & 58.50 & \textbf{67.09} & 60.23 & 63.47 \\
+        & CS-QP-P1 & 12.6 & 60.54 & 65.82 & 62.65 & 64.20 \\
+        & CS-QP-P2 & \textbf{5.4} & 58.50 & \textbf{67.09} & 60.23 & 63.47 \\
+        & DE & 6.6 & \textbf{60.88} & 65.82 & \textbf{63.03} & \textbf{64.40} \\
         \hline
-        male & CS-SDP-P1 & 1 & 1 & 1 & 1 & 1 \\
-        baseline accuracy = 50.12\% & CS-SDP-P2 & 1 & 1 & 1 & 1 & 1 \\
-        & CS-QP-P1 & 1 & 1 & 1 & 1 & 1 \\
-        & CS-QP-P2 & 1 & 1 & 1 & 1 & 1 \\
-        & DE & 1 & 1 & 1 & 1 & 1 \\
+        male & CS-SDP-P1 & 238.2 & 51.43 & 46.17 & 51.47 & 48.68 \\
+        baseline accuracy = 50.12\% & CS-SDP-P2 & 18.3 & 61.81 & \textbf{66.27} & 60.75 & 63.39 \\
+        & CS-QP-P1 & 24.4 & 59.90 & 59.57 & 59.86 & 59.71 \\
+        & CS-QP-P2 & \textbf{10.4} & 61.81 & \textbf{66.27} & 60.75 & 63.39 \\
+        & DE & 14.8 & \textbf{63.01} & 64.59 & \textbf{62.5} & \textbf{63.53} \\
         \hline
     \end{tabular}
     \label{tab:results}
 \end{table*}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\columnwidth, keepaspectratio=true]{test.png}
-    \caption{\hl{This is just a test image, we need to create proper images with proper labels}}
-    \label{fig:my_label}
-\end{figure}
+Clearly our methods show improved efficiency with respect to run time.
+It is worth noting, however, that there are odd discrepancies when comparing the run times based on the sizes of the data sets.
+This may indicate some inaccuracies due to caching during our experiments.
+Still, the results indicate our methods achieve a clear and consistent improvement in efficiency.
+
+The results also indicate a clear and consistent improvement in terms of accuracy, precision, and recall, albeit with a less significant difference.
 
 
 \section{Discussion}\label{discussion}
@@ -454,7 +475,7 @@ Elkan gave a helpful discussion of potential pitfalls regarding evaluating class
 In this case, the limitations in data set size and quantity are due to the costly nature of creating such brain networks as individuals need to undergo a series of scans and time series of these scans are used to create the resultant brain network \cite{lanciano2020}.
 Furthermore, the ratio of the studied classes is imbalanced when compared to the true ratio of individuals with ASD.
 
-Autism Spectrum Disorder is a very complex disorder with unclear definitions, and it may manifest in various different ways [\hl{perhaps this belongs in the intro when describing why the problem is hard?}].
+Autism Spectrum Disorder is a very complex disorder with unclear definitions, and it may manifest in various different ways.
 Above all this, the brain is a highly complex organ that is not fully understood.
 The brains of individuals are unique and develop in complex manners.
 There may be a plethora of confounding factors that have an effect on the classification of such networks with respect to identifying ASD in individuals.
