@@ -30,23 +30,41 @@ def discriminative_edges_graphs_to_points(train_graphs, train_labels, test_graph
     top_n = np.unravel_index(partitions[-num_edges:], diff_net.shape)
     bottom_n = np.unravel_index(partitions[:num_edges], diff_net.shape)
 
+    # Ensure the top edges are all positive and the bottom edges are all negative
+    top_edges = diff_net[top_n]
+    positive = top_edges > 0
+    positive_indices = (top_n[0][positive], top_n[1][positive])
+    important_a_edges = diff_net[positive_indices]
+
+    bottom_edges = diff_net[bottom_n]
+    negative = bottom_edges < 0
+    negative_indices = (bottom_n[0][negative], bottom_n[1][negative])
+    important_b_edges = diff_net[negative_indices]
+
+    a_sum = np.sum(important_a_edges)
+    b_sum = np.sum(important_b_edges)
+    full_sum = np.sum(np.abs(diff_net))
+
     def graph_to_point(graph):
         graph[np.where(graph==0)] = -1
-        return np.array([np.dot(diff_net[top_n], graph[top_n]),
-                         np.dot(diff_net[bottom_n], graph[bottom_n]),
-                         np.sum(np.multiply(graph, diff_net))])
+        return np.array([np.dot(important_a_edges, graph[positive_indices])/a_sum,
+                         np.dot(important_b_edges, graph[negative_indices])/b_sum,
+                         np.sum(np.multiply(graph, diff_net))/full_sum])
 
+    axes_labels = [f"% similarity between important {a_label} edges",
+                   f"% similarity between important {b_label} edges",
+                   f"% similarity of whole graph with {a_label} class"]
     train_points = np.array(list(map(graph_to_point, train_graphs)))
     test_points = np.array(list(map(graph_to_point, test_graphs)))
 
-    return train_points, test_points
+    return train_points, test_points, axes_labels
 
 def main():
     parser = argparse.ArgumentParser(description='Graph Classification using Discriminative Edges')
     parser.add_argument('A_dir', help='Filepath to class A directory containing brain network files.', type=str)
     parser.add_argument('B_dir', help='Filepath to class B directory containing brain network files.', type=str)
-    parser.add_argument('a_label', help='Label for class A', type=str, default="A")
-    parser.add_argument('b_label', help='Label for class B', type=str, default="B")
+    parser.add_argument('--a-label', help='Label for class A', type=str, default="A")
+    parser.add_argument('--b-label', help='Label for class B', type=str, default="B")
     parser.add_argument('-n','--num-edges', help='Number of positive and negative edges to use for classification.', type=int)
     parser.add_argument('-k','--num-folds', help='Number of times to fold data in k-fold cross validation (default: 5).', type=int, default = 5)
     parser.add_argument('-loo', '--leave-one-out', help='If present, perform leave-one-out cross validation (can be computationally expensive). This will cause num-folds to be ignored.', default=False, action="store_true")
@@ -70,7 +88,7 @@ def main():
     print("\nPerforming Discriminitive Edge Classification on Brain Networks")
 
     print("Number of Edges: ", num_edges)
-    classification.classify(graphs, labels, discriminative_edges_graphs_to_points,
+    classification.classify(graphs, labels, discriminative_edges_graphs_to_points, args.a_label, args.b_label,
                             args.num_folds, args.leave_one_out, args.plot_prefix,
                             random_state=23, num_edges=num_edges)
     

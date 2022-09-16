@@ -116,17 +116,17 @@ def plot_points(points, labels, plotname, axes_labels, a_label, b_label):
     b_indices = np.where(labels == b_label)
     if points.shape[1] == 3 and len(axes_labels) == 3:
         fig = plt.figure()
-        ax = plt.axes(projection ='3d')
+        ax = fig.add_subplot(projection='3d')
 
         y_vals = points[:,1]
         z_vals = points[:,2]
         x_vals_A, y_vals_A, z_vals_A = x_vals[a_indices], y_vals[a_indices], z_vals[a_indices]
         x_vals_B, y_vals_B, z_vals_B = x_vals[b_indices], y_vals[b_indices], z_vals[b_indices]
-        ax.scatter(x_vals_A, y_vals_A, z_vals_A, c="#5a7bfc")
-        ax.scatter(x_vals_B, y_vals_B, z_vals_B, c="#fcaa1b")
-        plt.xlabel(axes_labels[0])
-        plt.ylabel(axes_labels[1])
-        plt.zlabel(axes_labels[2])
+        ax.scatter(x_vals_A, y_vals_A, z_vals_A, c="#5a7bfc", marker="+", label=a_label)
+        ax.scatter(x_vals_B, y_vals_B, z_vals_B, c="#fcaa1b", marker="x", label=b_label)
+        ax.set_xlabel(axes_labels[0])
+        ax.set_ylabel(axes_labels[1])
+        ax.set_zlabel(axes_labels[2])
         plt.savefig(plotname)
         return
     elif points.shape[1] == 2 and len(axes_labels) == 2:

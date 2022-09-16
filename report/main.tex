@@ -22,7 +22,7 @@
 }
 
 \author{Tengkai Yu}
-\email{FIXTHIS@uvic.ca}
+\email{yutengkai@uvic.ca}
 \affiliation{%
   \institution{University of Victoria}
   \department{Computer Science}
@@ -206,8 +206,8 @@ Figure \ref{fig:prob1} positions some of the brain networks in two dimensions ba
 
 \begin{figure}
     \centering
-    \includegraphics[width=\columnwidth, keepaspectratio=true]{test.png}
-    \caption{Show a representative plot for problem 1}
+    \includegraphics[width=\columnwidth, keepaspectratio=true]{img/CSP1-SDP-Percentile-Children-4-train-labels.png}
+    \caption{The points in this plot represent brain networks used for training one of the cross validation folds. The bottom right points have more edges in common with the contrast subgraph that was found in $G^{TD-ASD}$, and similarly, the top left points have more edges in common with the contrast subgraph that was found in $G^{ASD-TD}$.}
     \label{fig:prob1}
 \end{figure}
 
@@ -220,8 +220,8 @@ Figure \ref{fig:prob2} positions some of the brain networks in two dimensions ba
 
 \begin{figure}
     \centering
-    \includegraphics[width=\columnwidth, keepaspectratio=true]{test.png}
-    \caption{Show a representative plot for problem 2}
+    \includegraphics[width=\columnwidth, keepaspectratio=true]{img/CSP2-SDP-Percentile-Children-4-train-labels.png}
+    \caption{As in Figure \ref{fig:prob1}, the points in this plot represent brain networks used for training one of the cross validation folds. The points further to the right represent graphs with less in common with the TD summary graph (larger distance from it), and similarly, the points further to the top are graphs with less in common with the ASD summary graph.}
     \label{fig:prob2}
 \end{figure}
 
@@ -375,7 +375,7 @@ Finally, a cumulative confusion matrix is derived as the sum of the confusion ma
 \subsection{Results} \label{results}
 
 After performing the replication of Lanciano \emph{et al.}'s paper to the best of our abilities, we obtained significantly lower accuracies than those reported in Table 2 of their paper.
-We performed three rounds of five fold cross validation using the reported parameter values. We briefly report the averaged replication results with their standard deviations in table \ref{tab:replication}.
+We performed three rounds of five fold cross validation using the reported parameter values. We briefly report the averaged replication results with their standard deviations in Table \ref{tab:replication}.
 
 We were able to produce better results than this with our own parameter tuning, but in either case, the accuracies are well below those reported in Lanciano \emph{et al.}'s work.
 
@@ -448,16 +448,12 @@ The results also indicate a clear and consistent improvement in terms of accurac
 \textbf{Discussion of Node-Identity Awareness and its importance with respect to how we treat the data. We do not need to treat it strictly like a graph as lanciano et al do.}
 
 More often than using brain scans, practitioners use behavioural information to diagnose ASD \cite{lord2006, johnson2007, dsm52013}.
-In fact, there are even widely used AI based solutions for diagnosing ASD based on behaviourat information \cite{knopf2021}.
+In fact, there are even widely used AI based solutions for diagnosing ASD based on behavioural information \cite{knopf2021}.
 % Look at the references of https://www.webmd.com/brain/autism/how-do-doctors-diagnose-autism
 If we wish to ensure the accuracy of AI models when providing diagnoses, it would make sense to include such behavioural information in addition to neurological information to train and build models.
 
 Considering ASD is a spectrum, and can affect individuals at very different levels, it might not make sense to view this as a binary classification problem.
 Instead, it could be beneficial to break the disorder into multiple additional categories to prevent the biases of ML models from favouring certain expressions of ASD.
-
-Lanciano \emph{et al.} showed that the degrees of each vertex in the studied brain networks did not vary significantly between the two classes \cite{lanciano2020},
-yet the contrast subgraphs are defined as a set of vertices, and every edge induced by these vertices is used for classification.
-Instead, we should look solely at edges that are important for distinguishing between the classes.
 
 The discriminative edge method considers the most important edges in each class (defined as having the most positive and most negative weights in the difference network) when creating an embedding.
 Additionally, it considers the brain network as a whole in its third dimension, which likely captures more interesting information with respect to complex connections in the brain.
@@ -482,30 +478,24 @@ There may be a plethora of confounding factors that have an effect on the classi
 
 
 
-
-
-
-
-\section{Conclusion}
-
-
-
-\subsection{Future Work}
+\subsection{Future Work} \label{future work}
 \begin{itemize}
     \item Develop classifiers using behavioural and neurological information together.
     \item Consider spaciality of ROIs. \cite{relion2019} suggests this would not be as helpful when the brain network has few ROIs, which is the case with the ABIDE dataset.
     \item Consider different preprocessing of ABIDE dataset.
     \item Run experiments with ABIDE II (if we don't get to it)
-    \item Combine brain scan information with behavioural assesment information.
-    \item Run simplified classifier alongside black box classifier, and report on the instances when they disagree.
+    \item Run simplified classifier alongside black box classifier, and report on the instances when they disagree to help understand what neural networks are doing differently.
 \end{itemize}
 
 Future work should attempt to identify higher order structures (such as triangles, k-clusters, or graphlets of varying size and shapes) as a means of embedding.
 This could be done by identifying prominent structures in each summary graph (perhaps after thresholding the edge weights), eliminating structures common to both, and counting the number of overlapping structures that a new brain network has in common with each class.
 The challenge associated with this technique comes with the computational complexity of enumerating such high order structures.
+(NOTE: I TRIED A BRIEF EXPERIMENT USING TRIANGLES THAT DID NOT PERFORM VERY WELL).
 
-As discussed in section \ref{discussion}, this study should be replicated on additional data sets to further test its validity.
 
+
+\section{Conclusion}
+As discussed in section \ref{future work}, this study should be replicated on additional data sets to further test its validity.
 
 \appendix
 
