@@ -127,6 +127,7 @@ def plot_points(points, labels, plotname, axes_labels, a_label, b_label):
         ax.set_xlabel(axes_labels[0])
         ax.set_ylabel(axes_labels[1])
         ax.set_zlabel(axes_labels[2])
+        ax.legend()
         plt.savefig(plotname)
         return
     elif points.shape[1] == 2 and len(axes_labels) == 2:

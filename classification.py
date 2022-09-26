@@ -1,16 +1,18 @@
 import numpy as np
 import utils
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF
 
 def classify(inputs, labels, inputs_to_points, a_label, b_label, num_folds=5,
                 leave_one_out=False, plot_prefix="", random_state=23, supress_output=False, **kwargs):
     # Cumulative confusion matrix is used to report on classifier metrics over all of the k folds.
     cumulative_confusion_matrix = np.zeros((2,2))
-    classifier = LinearSVC(random_state=random_state)
+    classifier = SVC(gamma=2, C=1, random_state=random_state)
     splitter = None
     plot = bool(plot_prefix)
 

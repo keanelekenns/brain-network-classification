@@ -47,9 +47,9 @@ def discriminative_edges_graphs_to_points(train_graphs, train_labels, test_graph
 
     def graph_to_point(graph):
         graph[np.where(graph==0)] = -1
-        return np.array([np.dot(important_a_edges, graph[positive_indices])/a_sum,
-                         np.dot(important_b_edges, graph[negative_indices])/b_sum,
-                         np.sum(np.multiply(graph, diff_net))/full_sum])
+        return np.array([100*np.dot(important_a_edges, graph[positive_indices])/a_sum,
+                         100*np.dot(important_b_edges, graph[negative_indices])/b_sum,
+                         100*np.sum(np.multiply(graph, diff_net))/full_sum])
 
     axes_labels = [f"% similarity between important {a_label} edges",
                    f"% similarity between important {b_label} edges",
