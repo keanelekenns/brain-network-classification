@@ -1,4 +1,5 @@
 # coding: utf-8
+from datetime import datetime
 import lanciano
 import numpy as np
 import cvxpy as cp
@@ -145,6 +146,8 @@ def sdp(diff_net, alpha):
     Returns:
         constrast_subgraph - A 1D numpy array containing vertex indexes of a contrast subgraph.
     """
+    start_time = datetime.now()
+
     w, d = lanciano._make_coefficient_matrices(diff_net)
     P = np.matrix(w - alpha * d)
 
@@ -156,10 +159,22 @@ def sdp(diff_net, alpha):
     prob = cp.Problem(cp.Maximize(cp.trace(P_4 @ X)),
                       constraints)
     prob.solve()
+    # np.save("python_sdp.npy", X.value) # Used to compare to original code
 
     L = lanciano.semidefinite_cholesky(X)
     nodeset, obj, obj_rounded = lanciano.charikar_projection(L, P, diff_net, alpha, t=1000)
-    return localSearch_Tsourakakis(diff_net, nodeset, alpha)
+
+    finish_sdp_time = datetime.now()
+    print(f"Time for SDP: {finish_sdp_time - start_time}")
+    
+    print(f"CS before local search: {nodeset}")
+    cs = localSearch_Tsourakakis(diff_net, nodeset, alpha)
+    print(f"CS after local search: {cs}")
+
+    finish_time = datetime.now()
+    print(f"Time for local search: {finish_time - finish_sdp_time}")
+    print(f"Time to find CS: {finish_time - start_time}")
+    return cs
 
 def qp(diff_net, alpha):
     """
@@ -172,6 +187,8 @@ def qp(diff_net, alpha):
     Returns:
         constrast_subgraph - A 1D numpy array containing vertex indexes of a contrast subgraph.
     """
+    start_time = datetime.now()
+    
     N = diff_net.shape[0]
     assert(N == diff_net.shape[1])
     objective_function = diff_net - alpha
@@ -198,5 +215,15 @@ def qp(diff_net, alpha):
     x = np.array(sol['x'])
     # objective_value = sol['primal objective']
     nodeset = np.where(x > 0)[0]
+
+    finish_qp_time = datetime.now()
+    print(f"Time for QP: {finish_qp_time - start_time}")
     
-    return localSearch(diff_net, nodeset, alpha)
+    print(f"CS before local search: {nodeset}")
+    cs = localSearch(diff_net, nodeset, alpha)
+    print(f"CS after local search: {cs}")
+
+    finish_time = datetime.now()
+    print(f"Time for local search: {finish_time - finish_qp_time}")
+    print(f"Time to find CS: {finish_time - start_time}")
+    return cs
