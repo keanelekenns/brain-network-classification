@@ -106,7 +106,7 @@ def random_projection_qp(L, P, A, alpha, t=100, seed=None, return_x_rounded=Fals
         count += 1
     # solution is the set of nodes with the same orientation
     # as x_0
-    S = [n for n in range(1, len(L)) if x_rounded[n] == x_rounded[0]]
+    S = [n - 1 for n in range(1, len(L)) if x_rounded[n] == x_rounded[0]]
     if return_x_rounded:
         x_rounded = np.matrix(x_rounded)
         if x_rounded.shape[0] != len(L):

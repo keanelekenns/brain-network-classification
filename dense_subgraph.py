@@ -1,6 +1,6 @@
 # coding: utf-8
 from datetime import datetime
-import lanciano
+import cadena
 import numpy as np
 import cvxpy as cp
 import cvxopt
@@ -69,7 +69,7 @@ def localSearch_Tsourakakis(graph, node_set, alpha, max_iterations=100):
     # print("Contrast subgraph after {} iterations of local search".format(i), nodes[S])
     return nodes[S].copy()
 
-def localSearch(graph, node_set, alpha, max_iterations=10):
+def local_search_enns(graph, node_set, alpha, max_iterations=10):
     """
     Given a weighted graph and a set of nodes, attempt to build a locally
     optimal set of nodes (S) such that they maximize the function:
@@ -86,12 +86,18 @@ def localSearch(graph, node_set, alpha, max_iterations=10):
         refined_node_set - A 1D numpy array containing vertex indexes
         of a dense subgraph of graph.
     """
-    # print("Contrast subgraph before local search", node_set)
     # Don't want to double count edges, so only take upper triangle
     g = np.triu(graph, k=1)
     nodes = np.arange(graph.shape[0])
     # Create masks for nodes inside the refined_node_set and those outside it
     S = np.array([v in node_set for v in nodes])
+    # If there is nothing in the initial node_set, the algorithm won't be able to add nodes
+    # So start it off with two nodes that have the heaviest edge between them
+    if not S.any():
+        u, v = np.unravel_index(np.argmax(graph), graph.shape)
+        S[u] = True
+        S[v] = True
+        
     V = ~S
     edge_weight_surplus = utils.edge_weight_surplus(g, nodes[S], alpha)
     changes_made = True
@@ -131,7 +137,6 @@ def localSearch(graph, node_set, alpha, max_iterations=10):
                 break
         if i == max_iterations:
             print("LocalSearch reached maximum number of iterations")
-    # print("Contrast subgraph after {} iterations of local search".format(i), nodes[S])
     return nodes[S].copy()
             
 
@@ -148,7 +153,7 @@ def sdp(diff_net, alpha):
     """
     start_time = datetime.now()
 
-    w, d = lanciano._make_coefficient_matrices(diff_net)
+    w, d = cadena._make_coefficient_matrices(diff_net)
     P = np.matrix(w - alpha * d)
 
     n = len(P)
@@ -161,15 +166,24 @@ def sdp(diff_net, alpha):
     prob.solve()
     # np.save("python_sdp.npy", X.value) # Used to compare to original code
 
-    L = lanciano.semidefinite_cholesky(X)
-    nodeset, obj, obj_rounded = lanciano.charikar_projection(L, P, diff_net, alpha, t=1000)
+    L = cadena.semidefinite_cholesky(X)
+    node_set, obj_orig, obj_rounded = cadena.random_projection_qp(L, P, diff_net, alpha, t=1000)
 
     finish_sdp_time = datetime.now()
     print(f"Time for SDP: {finish_sdp_time - start_time}")
-    
-    print(f"CS before local search: {nodeset}")
-    cs = localSearch_Tsourakakis(diff_net, nodeset, alpha)
+
+    print(f"CS before local search: {node_set}")
+    objective_value_sdp = utils.edge_weight_surplus(graph=diff_net, node_set=np.array(node_set), alpha=alpha)
+    print(f"Objective function value: {objective_value_sdp}")
+
+    cs = localSearch_Tsourakakis(diff_net, node_set, alpha)
+
     print(f"CS after local search: {cs}")
+    objective_value_local_search = utils.edge_weight_surplus(graph=diff_net, node_set=cs, alpha=alpha)
+    print(f"Objective function value: {objective_value_local_search}")
+
+    if objective_value_sdp > 0:
+        print(f"Local Search improved solution by {((objective_value_local_search - objective_value_sdp)/objective_value_sdp)*100}%")
 
     finish_time = datetime.now()
     print(f"Time for local search: {finish_time - finish_sdp_time}")
@@ -214,14 +228,23 @@ def qp(diff_net, alpha):
     sol = cvxopt.solvers.qp(P,q,G,h)
     x = np.array(sol['x'])
     # objective_value = sol['primal objective']
-    nodeset = np.where(x > 0)[0]
+    node_set = np.where(x > 0)[0]
 
     finish_qp_time = datetime.now()
     print(f"Time for QP: {finish_qp_time - start_time}")
     
-    print(f"CS before local search: {nodeset}")
-    cs = localSearch(diff_net, nodeset, alpha)
+    print(f"CS before local search: {node_set}")
+    objective_value_qp = utils.edge_weight_surplus(graph=diff_net, node_set=node_set, alpha=alpha)
+    print(f"Objective function value: {objective_value_qp}")
+
+    cs = local_search_enns(diff_net, node_set, alpha)
+
     print(f"CS after local search: {cs}")
+    objective_value_local_search = utils.edge_weight_surplus(graph=diff_net, node_set=cs, alpha=alpha)
+    print(f"Objective function value: {objective_value_local_search}")
+
+    if objective_value_qp > 0:
+        print(f"Local Search improved solution by {((objective_value_local_search - objective_value_qp)/objective_value_qp)*100}%")
 
     finish_time = datetime.now()
     print(f"Time for local search: {finish_time - finish_qp_time}")
