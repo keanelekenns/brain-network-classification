@@ -15,11 +15,10 @@ def classify(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None
         y_train, y_test = y[train_index], y[test_index]
 
         param_dict = {}
-        num_combinations = 1
         for step in pipeline_steps:
-            param_list = list(ParameterGrid(step_params[step.__name__]))
-            param_dict[step.__name__] = param_list
-            num_combinations *= len(param_list)
+            if step_params.get(step.__name__):
+                param_list = list(ParameterGrid(step_params[step.__name__]))
+                param_dict[step.__name__] = param_list
         
         n_splits = inner_cv.get_n_splits()
         bucketed_param_lists = [ [] for _ in range(n_splits) ]
@@ -41,7 +40,10 @@ def classify(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None
             for param_set in bucketed_param_lists[i]:
                 pipeline = []
                 for step in pipeline_steps:
-                    pipeline.append(step(**param_set[step.__name__]))
+                    if not param_set.get(step.__name__):
+                        pipeline.append(step())
+                    else:
+                        pipeline.append(step(**param_set[step.__name__]))
 
                 X_train_inner_transformed = X_train_inner
                 X_test_inner_transformed = X_test_inner
@@ -64,7 +66,10 @@ def classify(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None
 
         pipeline = []
         for step in pipeline_steps:
-            pipeline.append(step(**chosen_params[step.__name__]))
+            if not chosen_params.get(step.__name__):
+                pipeline.append(step())
+            else:
+                pipeline.append(step(**chosen_params[step.__name__]))
 
         X_train_transformed = X_train
         X_test_transformed = X_test
@@ -74,7 +79,7 @@ def classify(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None
             if step == pipeline[-1]:
                 step.fit(X_train_transformed, y_train)
                 y_pred = step.predict(X_test_transformed)
-                report = classification_report(y_true=y_test_inner, y_pred=y_pred, output_dict=True)
+                report = classification_report(y_true=y_test, y_pred=y_pred, output_dict=True)
                 results_and_params.append({"results": report, "params": chosen_params, "trained_pipeline": pipeline})
             else:
                 step.fit(X_train_transformed, y_train)
