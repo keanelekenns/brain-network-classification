@@ -151,7 +151,7 @@ def sdp(diff_net, alpha):
     Returns:
         constrast_subgraph - A 1D numpy array containing vertex indexes of a contrast subgraph.
     """
-    start_time = datetime.now()
+    # start_time = datetime.now()
 
     w, d = cadena._make_coefficient_matrices(diff_net)
     P = np.matrix(w - alpha * d)
@@ -169,25 +169,25 @@ def sdp(diff_net, alpha):
     L = cadena.semidefinite_cholesky(X)
     node_set, obj_orig, obj_rounded = cadena.random_projection_qp(L, P, diff_net, alpha, t=1000)
 
-    finish_sdp_time = datetime.now()
-    print(f"Time for SDP: {finish_sdp_time - start_time}")
+    # finish_sdp_time = datetime.now()
+    # print(f"Time for SDP: {finish_sdp_time - start_time}")
 
-    print(f"CS before local search: {node_set}")
-    objective_value_sdp = utils.edge_weight_surplus(graph=diff_net, node_set=np.array(node_set), alpha=alpha)
-    print(f"Objective function value: {objective_value_sdp}")
+    # print(f"CS before local search: {node_set}")
+    # objective_value_sdp = utils.edge_weight_surplus(graph=diff_net, node_set=np.array(node_set), alpha=alpha)
+    # print(f"Objective function value: {objective_value_sdp}")
 
     cs = localSearch_Tsourakakis(diff_net, node_set, alpha)
 
-    print(f"CS after local search: {cs}")
-    objective_value_local_search = utils.edge_weight_surplus(graph=diff_net, node_set=cs, alpha=alpha)
-    print(f"Objective function value: {objective_value_local_search}")
+    # print(f"CS after local search: {cs}")
+    # objective_value_local_search = utils.edge_weight_surplus(graph=diff_net, node_set=cs, alpha=alpha)
+    # print(f"Objective function value: {objective_value_local_search}")
 
-    if objective_value_sdp > 0:
-        print(f"Local Search improved solution by {((objective_value_local_search - objective_value_sdp)/objective_value_sdp)*100}%")
+    # if objective_value_sdp > 0:
+    #     print(f"Local Search improved solution by {((objective_value_local_search - objective_value_sdp)/objective_value_sdp)*100}%")
 
-    finish_time = datetime.now()
-    print(f"Time for local search: {finish_time - finish_sdp_time}")
-    print(f"Time to find CS: {finish_time - start_time}")
+    # finish_time = datetime.now()
+    # print(f"Time for local search: {finish_time - finish_sdp_time}")
+    # print(f"Time to find CS: {finish_time - start_time}")
     return cs
 
 def qp(diff_net, alpha):
@@ -201,18 +201,20 @@ def qp(diff_net, alpha):
     Returns:
         constrast_subgraph - A 1D numpy array containing vertex indexes of a contrast subgraph.
     """
-    start_time = datetime.now()
+    # start_time = datetime.now()
     
     N = diff_net.shape[0]
     assert(N == diff_net.shape[1])
-    objective_function = diff_net - alpha
+
+    # The objective function to maximize would be diff_net - alpha, but our qp solver
+    # can only minimize an expression, so we swap the signs.
+    objective_function = alpha - diff_net
     np.fill_diagonal(objective_function, 0)
 
     # CVXOPT can only minimize x in the expression (1/2) x.T @ P @ x + q.T @ x
     # subject to Gx << h (and Ax = b, but that's not applicable here)
-    # So we need to invert the objective function, because we want to maximize it.
-    P = np.triu(-objective_function, k=1)
-    q = np.sum(-objective_function, axis=0)
+    P = objective_function / 2
+    q = np.sum(objective_function, axis=0) / 2
     G = np.zeros((2*N, N))
     for i in range(N):
         G[2*i,i] = 1
@@ -227,26 +229,25 @@ def qp(diff_net, alpha):
     cvxopt.solvers.options['show_progress'] = False
     sol = cvxopt.solvers.qp(P,q,G,h)
     x = np.array(sol['x'])
-    # objective_value = sol['primal objective']
     node_set = np.where(x > 0)[0]
 
-    finish_qp_time = datetime.now()
-    print(f"Time for QP: {finish_qp_time - start_time}")
+    # finish_qp_time = datetime.now()
+    # print(f"Time for QP: {finish_qp_time - start_time}")
     
-    print(f"CS before local search: {node_set}")
-    objective_value_qp = utils.edge_weight_surplus(graph=diff_net, node_set=node_set, alpha=alpha)
-    print(f"Objective function value: {objective_value_qp}")
+    # print(f"CS before local search: {node_set}")
+    # objective_value_qp = utils.edge_weight_surplus(graph=diff_net, node_set=node_set, alpha=alpha)
+    # print(f"Objective function value: {objective_value_qp}")
 
     cs = local_search_enns(diff_net, node_set, alpha)
 
-    print(f"CS after local search: {cs}")
-    objective_value_local_search = utils.edge_weight_surplus(graph=diff_net, node_set=cs, alpha=alpha)
-    print(f"Objective function value: {objective_value_local_search}")
+    # print(f"CS after local search: {cs}")
+    # objective_value_local_search = utils.edge_weight_surplus(graph=diff_net, node_set=cs, alpha=alpha)
+    # print(f"Objective function value: {objective_value_local_search}")
 
-    if objective_value_qp > 0:
-        print(f"Local Search improved solution by {((objective_value_local_search - objective_value_qp)/objective_value_qp)*100}%")
+    # if objective_value_qp > 0:
+    #     print(f"Local Search improved solution by {((objective_value_local_search - objective_value_qp)/objective_value_qp)*100}%")
 
-    finish_time = datetime.now()
-    print(f"Time for local search: {finish_time - finish_qp_time}")
-    print(f"Time to find CS: {finish_time - start_time}")
+    # finish_time = datetime.now()
+    # print(f"Time for local search: {finish_time - finish_qp_time}")
+    # print(f"Time to find CS: {finish_time - start_time}")
     return cs
