@@ -4,7 +4,7 @@ from sklearn.model_selection import StratifiedKFold, ParameterGrid
 from pipeline import Pipeline
     
 
-def classify(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None, random_state = None, plot_prefix=None):
+def nested_grid_search_cv(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None, random_state = None, plot_prefix=None):
     
     outer_cv = outer_cv or StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
     inner_cv = inner_cv or StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
@@ -67,11 +67,44 @@ def classify(X, y, pipeline_steps, step_params, outer_cv = None, inner_cv = None
                 pipeline.plot_prefix = f"{plot_prefix}-{i}-{pipeline.plot_prefix}"
             else:
                 pipeline.plot_prefix = f"{plot_prefix}-{i}"
-        pipeline.train_labels = y_train
-        pipeline.test_labels = y_test
-        if pipeline.is_plottable():
-            pipeline.plot()
+            pipeline.train_labels = y_train
+            pipeline.test_labels = y_test
+            if pipeline.is_plottable():
+                pipeline.plot()
         
         i += 1
 
     return results_and_params
+
+
+def cross_validate(X, y, pipeline: Pipeline, cv = None, random_state = None, plot_prefix=None):
+    
+    cv = cv or StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+
+    results = []
+
+    i = 0
+    for train_index, test_index in cv.split(X, y):
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+
+        y_pred = pipeline.predict(X_train=X_train, y_train=y_train, X_test=X_test)
+
+        results.append({
+            "report": classification_report(y_true=y_test, y_pred=y_pred, output_dict=True, zero_division=0),
+            "confusion_matrix": confusion_matrix(y_true=y_test, y_pred=y_pred)
+        })
+        
+        if plot_prefix:
+            if pipeline.plot_prefix:
+                pipeline.plot_prefix = f"{plot_prefix}-{i}-{pipeline.plot_prefix}"
+            else:
+                pipeline.plot_prefix = f"{plot_prefix}-{i}"
+            pipeline.train_labels = y_train
+            pipeline.test_labels = y_test
+            if pipeline.is_plottable():
+                pipeline.plot()
+        
+        i += 1
+
+    return results

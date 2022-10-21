@@ -18,6 +18,7 @@ class Pipeline():
         self.plot_prefix = None
 
         # Init the pipeline steps with the given parameters
+        self.params = params
         self.steps = []
         for step in steps:
             if hasattr(step, "takes_pipeline"):
@@ -65,7 +66,10 @@ class Pipeline():
         elif self.test_points is None:
             self.test_points = points
         else:
-            raise ValueError("Too many points added. Can only add a set of train points and a set of test points.")
+            # Restart by overwriting the train points
+            # (can only hold one set of train and test points at a time)
+            self.train_points = points
+            self.test_points = None
 
 
 
