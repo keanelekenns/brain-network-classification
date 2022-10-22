@@ -113,12 +113,10 @@ class ContrastSubgraphTransformer():
                 # A -> B
                 flat = masked_diff_a_b[np.triu_indices_from(masked_diff_a_b, k=1)]
                 self.alpha = np.percentile(flat, self.percentile)
-                print("alpha = {} ({}-th percentile)".format(self.alpha, self.percentile), end=", ")
 
                 # B -> A
                 flat = masked_diff_b_a[np.triu_indices_from(masked_diff_b_a, k=1)]
                 self.alpha2 = np.percentile(flat, self.percentile2)
-                print("alpha2 = {} ({}-th percentile)".format(self.alpha2, self.percentile2))
 
             cs_a_b = nodes[node_mask_a_b][self.solver(masked_diff_a_b, self.alpha)]
             self.cs_a_b_list.append(cs_a_b)
@@ -150,7 +148,6 @@ class ContrastSubgraphTransformer():
             if not self.alpha_provided:
                 flat = masked_diff[np.triu_indices_from(masked_diff, k=1)]
                 self.alpha = np.percentile(flat, self.percentile)
-                print("alpha = {} ({}-th percentile)".format(self.alpha, self.percentile))
             
             cs = nodes[node_mask][self.solver(masked_diff, self.alpha)]
             self.cs_list.append(cs)

@@ -108,6 +108,9 @@ def grid_search_cv(X, y, pipeline_steps, step_param_grids, cv = None, random_sta
         results, summary = cross_validate(X=X, y=y, pipeline=pipeline_inner, cv=cv, random_state=random_state)
         avg_accuracy = summary["accuracy_mean"]
 
+        if params == params_list[0]:
+            print(f"grid_search_cv will take aproximately {(summary['mean_train_time'] + summary['mean_predict_time'])*cv.get_n_splits()*len(params_list)}")
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_params = params
