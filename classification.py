@@ -22,13 +22,14 @@ def nested_grid_search_cv(X, y, pipeline_steps, step_param_grids, outer_cv = Non
     
     i = 0
     tune_times = []
+    train_times = []
     predict_times = []
     for train_index, test_index in outer_cv.split(X, y):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
         tune_start_time = datetime.now()
-        pipeline = grid_search_cv(X=X_train, y=y_train, pipeline_steps=pipeline_steps, step_param_grids=step_param_grids, cv=inner_cv, random_state=random_state)
+        results, pipeline = grid_search_cv(X=X_train, y=y_train, pipeline_steps=pipeline_steps, step_param_grids=step_param_grids, cv=inner_cv, random_state=random_state)
 
         tune_end_time = datetime.now()
 
@@ -39,6 +40,7 @@ def nested_grid_search_cv(X, y, pipeline_steps, step_param_grids, outer_cv = Non
         predict_time = predict_end_time - tune_end_time
 
         tune_times.append(tune_time)
+        train_times.append(results["summary"]["mean_train_time"])
         predict_times.append(predict_time)
 
         results_and_params.append({
@@ -68,12 +70,14 @@ def nested_grid_search_cv(X, y, pipeline_steps, step_param_grids, outer_cv = Non
     accuracy_mean = mean(accuracies)
     accuracy_stdev = stdev(accuracies, xbar=accuracy_mean)
     mean_tuning_time = calculate_mean_time(tune_times)
+    mean_train_time = calculate_mean_time(train_times)
     mean_predict_time = calculate_mean_time(predict_times)
 
     summary = {
         "accuracy_mean": accuracy_mean,
         "accuracy_stdev": accuracy_stdev,
         "mean_tuning_time": mean_tuning_time,
+        "mean_train_time": mean_train_time,
         "mean_predict_time": mean_predict_time
     }
 
@@ -94,22 +98,31 @@ def grid_search_cv(X, y, pipeline_steps, step_param_grids, cv = None, random_sta
     
     params_list = list(ParameterGrid(param_dict))
     
-    chosen_params = None
     best_accuracy = 0
+    best_params = None
+    best_results = None
+    best_summary = None
     for params in params_list:
         pipeline_inner = Pipeline(steps=pipeline_steps, params=params)
 
-        _, summary = cross_validate(X=X, y=y, pipeline=pipeline_inner, cv=cv, random_state=random_state)
+        results, summary = cross_validate(X=X, y=y, pipeline=pipeline_inner, cv=cv, random_state=random_state)
         avg_accuracy = summary["accuracy_mean"]
 
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
-            chosen_params = params
+            best_params = params
+            best_results = results
+            best_summary = summary
     
-    pipeline = Pipeline(steps=pipeline_steps, params=chosen_params)
+    pipeline = Pipeline(steps=pipeline_steps, params=best_params)
     pipeline.fit(X_train=X, y_train=y)
 
-    return pipeline
+    results = {
+        "summary": best_summary,
+        "best_results": best_results,
+    }
+
+    return results, pipeline
 
 
 
@@ -170,5 +183,6 @@ def cross_validate(X, y, pipeline: Pipeline, cv = None, random_state = None, plo
         "accuracy_stdev": accuracy_stdev,
         "mean_train_time": mean_train_time,
         "mean_predict_time": mean_predict_time,
+        "params": pipeline.params
     }
     return results, summary
