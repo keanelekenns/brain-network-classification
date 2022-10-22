@@ -32,17 +32,21 @@ class Pipeline():
                 else:
                     self.steps.append(step(**params[step.__name__]))
 
-
-    def predict(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray) -> np.ndarray:
+    def fit(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
+        X_transformed = X_train
+        for step in self.steps:
+            step.fit(X_transformed, y_train)
+            if step != self.steps[-1]:
+                X_transformed = step.transform(X_transformed)
+    
+    def predict(self, X: np.ndarray) -> np.ndarray:
         y_pred = None
+        X_test = X
         for step in self.steps:
             if step != self.steps[-1]:
-                step.fit(X_train, y_train)
-                X_train = step.transform(X_train)
                 X_test = step.transform(X_test)
             else:
                 # The last step must be a classifier
-                step.fit(X_train, y_train)
                 y_pred = step.predict(X_test)
 
         self.predicted_test_labels = y_pred
