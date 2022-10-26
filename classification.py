@@ -40,7 +40,7 @@ def nested_grid_search_cv(X, y, pipeline_steps, step_param_grids, outer_cv = Non
         predict_time = predict_end_time - tune_end_time
 
         tune_times.append(tune_time)
-        train_times.append(results["summary"]["mean_train_time"])
+        train_times.append(results["mean_train_time"])
         predict_times.append(predict_time)
 
         results_and_params.append({
@@ -51,6 +51,7 @@ def nested_grid_search_cv(X, y, pipeline_steps, step_param_grids, outer_cv = Non
             "params": pipeline.params,
             "trained_pipeline_steps": pipeline.steps,
             "parameter_tuning_time": tune_time,
+            "mean_train_time": results["mean_train_time"],
             "predict_time": predict_time
         })
         
@@ -98,6 +99,7 @@ def grid_search_cv(X, y, pipeline_steps, step_param_grids, cv = None, random_sta
     
     params_list = list(ParameterGrid(param_dict))
     
+    train_times = []
     best_accuracy = 0
     best_params = None
     best_results = None
@@ -116,13 +118,18 @@ def grid_search_cv(X, y, pipeline_steps, step_param_grids, cv = None, random_sta
             best_params = params
             best_results = results
             best_summary = summary
+
+        train_times.append(summary['mean_train_time'])
     
     pipeline = Pipeline(steps=pipeline_steps, params=best_params)
     pipeline.fit(X_train=X, y_train=y)
 
+    mean_train_time = calculate_mean_time(train_times)
+
     results = {
         "summary": best_summary,
         "best_results": best_results,
+        "mean_train_time": mean_train_time
     }
 
     return results, pipeline
