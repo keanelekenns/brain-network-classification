@@ -17,9 +17,9 @@ class DiscriminativeEdgesTransformer():
 
         if pipeline is not None:
             if self.weighted:
-                pipeline.axes_labels = [r"Signed distance from DE of $G^{%s}$"%a_label,
-                                        r"Signed distance from DE of $G^{%s}$"%b_label,
-                                        r"Signed distance from $G^{%s}$"%a_label]
+                pipeline.axes_labels = [r"Weighted displacement from DE of $G^{%s}$"%a_label,
+                                        r"Weighted displacement from DE of $G^{%s}$"%b_label,
+                                        r"Weighted displacement from $G^{%s}$"%a_label]
             else:
                 pipeline.axes_labels = [f"% similarity between important {a_label} edges",
                                         f"% similarity between important {b_label} edges",
@@ -59,13 +59,12 @@ class DiscriminativeEdgesTransformer():
         if len(self.negative_indices[0]) < self.num_edges:
             print(f"WARNING: only found {len(self.negative_indices)} negative DEs (looking for {self.num_edges}).")
         
-        if not self.weighted:
-            self.important_a_edges = self.diff_net[self.positive_indices]
-            self.important_b_edges = self.diff_net[self.negative_indices]
+        self.important_a_edges = self.diff_net[self.positive_indices]
+        self.important_b_edges = self.diff_net[self.negative_indices]
 
-            self.a_sum = np.sum(self.important_a_edges)
-            self.b_sum = np.sum(self.important_b_edges)
-            self.full_sum = np.sum(np.abs(self.diff_net))
+        self.a_sum = np.sum(self.important_a_edges)
+        self.b_sum = np.sum(self.important_b_edges)
+        self.full_sum = np.sum(np.abs(self.diff_net))
 
         return self
 
@@ -78,9 +77,9 @@ class DiscriminativeEdgesTransformer():
 
     def graph_to_point(self, graph):
         if self.weighted:
-            return np.array([np.sum(graph[self.positive_indices] - self.summary_A[self.positive_indices]),
-                             np.sum(graph[self.negative_indices] - self.summary_B[self.negative_indices]),
-                             np.sum(graph - self.summary_A)])
+            return np.array([np.dot(self.important_a_edges, graph[self.positive_indices] - self.summary_A[self.positive_indices]),
+                             np.dot(self.important_b_edges, graph[self.negative_indices] - self.summary_B[self.negative_indices]),
+                             np.sum(np.multiply(graph - self.summary_A, self.diff_net))])
         else:
             graph[np.where(graph==0)] = -1
             return np.array([100*np.dot(self.important_a_edges, graph[self.positive_indices])/self.a_sum,
