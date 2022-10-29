@@ -3,7 +3,11 @@ from datetime import datetime, timedelta
 from statistics import mean, stdev
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import StratifiedKFold, ParameterGrid
+from iidaka_transformer import IidakaTransformer
 from pipeline import Pipeline
+import seaborn as sns
+import matplotlib.pylab as plt
+import numpy as np
 
 def calculate_mean_time(times: list[timedelta]) -> timedelta:
     # Can't do normal mean with timedelta objects
@@ -56,7 +60,15 @@ def nested_grid_search_cv(X, y, pipeline_steps, step_param_grids, outer_cv = Non
         })
         
         if plot_prefix:
-            if pipeline.plot_prefix:
+            if pipeline.steps[0].__class__ == IidakaTransformer:
+                transformer = pipeline.steps[0]
+                masked = np.zeros_like(transformer.cohens_d)
+                np.add(masked, transformer.cohens_d, out=masked, where=transformer.cohens_d > transformer.effect_size_threshold)
+                plt.clf()
+                sns.heatmap(masked)
+                plt.title(f"{np.count_nonzero(masked)} features chosen, ES threshold = {transformer.effect_size_threshold}")
+                plt.savefig(f"plots/{plot_prefix}-{i}-iidaka")
+            elif pipeline.plot_prefix:
                 pipeline.plot_prefix = f"{plot_prefix}-{i}-{pipeline.plot_prefix}"
             else:
                 pipeline.plot_prefix = f"{plot_prefix}-{i}"
