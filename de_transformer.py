@@ -16,14 +16,9 @@ class DiscriminativeEdgesTransformer():
         self.weighted = weighted
 
         if pipeline is not None:
-            if self.weighted:
-                pipeline.axes_labels = [r"Weighted displacement from DE of $G^{%s}$"%a_label,
-                                        r"Weighted displacement from DE of $G^{%s}$"%b_label,
-                                        r"Weighted displacement from $G^{%s}$"%a_label]
-            else:
-                pipeline.axes_labels = [f"% similarity between important {a_label} edges",
-                                        f"% similarity between important {b_label} edges",
-                                        f"% similarity of whole graph with {a_label} class"]
+            pipeline.axes_labels = [f"% similarity w/ {a_label} DE",
+                                    f"% similarity w/ {b_label} DE",
+                                    f"% similarity w/ {a_label} class"]
             pipeline.a_label = a_label
             pipeline.b_label = b_label
             pipeline.plot_prefix = f"DE-{num_edges}"
@@ -58,13 +53,16 @@ class DiscriminativeEdgesTransformer():
 
         if len(self.negative_indices[0]) < self.num_edges:
             print(f"WARNING: only found {len(self.negative_indices)} negative DEs (looking for {self.num_edges}).")
-        
-        self.important_a_edges = self.diff_net[self.positive_indices]
-        self.important_b_edges = self.diff_net[self.negative_indices]
 
-        self.a_sum = np.sum(self.important_a_edges)
-        self.b_sum = np.sum(self.important_b_edges)
-        self.full_sum = np.sum(np.abs(self.diff_net))
+        if self.weighted:
+            self.scaled_a_summary = np.multiply(self.summary_A, self.diff_net)
+            self.scaled_b_summary = np.multiply(self.summary_B, self.diff_net)
+        else:
+            self.important_a_edges = self.diff_net[self.positive_indices]
+            self.important_b_edges = self.diff_net[self.negative_indices]
+            self.a_sum = np.sum(self.important_a_edges)
+            self.b_sum = np.sum(self.important_b_edges)
+            self.full_sum = np.sum(np.abs(self.diff_net))
 
         return self
 
@@ -77,9 +75,22 @@ class DiscriminativeEdgesTransformer():
 
     def graph_to_point(self, graph):
         if self.weighted:
-            return np.array([np.dot(self.important_a_edges, graph[self.positive_indices] - self.summary_A[self.positive_indices]),
-                             np.dot(self.important_b_edges, graph[self.negative_indices] - self.summary_B[self.negative_indices]),
-                             np.sum(np.multiply(graph - self.summary_A, self.diff_net))])
+
+            scaled_graph = np.multiply(graph, self.diff_net)
+            diff_A = self.scaled_a_summary - scaled_graph
+            diff_B = self.scaled_b_summary - scaled_graph
+            diff_A_a_edges = diff_A[self.positive_indices]
+            diff_A_b_edges = diff_A[self.negative_indices]
+            diff_B_a_edges = diff_B[self.positive_indices]
+            diff_B_b_edges = diff_B[self.negative_indices]
+
+            A_sim_a_edges = (np.linalg.norm(diff_B_a_edges) - np.linalg.norm(diff_A_a_edges))/(np.linalg.norm(diff_B_a_edges) + np.linalg.norm(diff_A_a_edges))
+            B_sim_b_edges = (np.linalg.norm(diff_A_b_edges) - np.linalg.norm(diff_B_b_edges))/(np.linalg.norm(diff_A_b_edges) + np.linalg.norm(diff_B_b_edges))
+            A_sim_all = (np.linalg.norm(diff_B) - np.linalg.norm(diff_A))/(np.linalg.norm(diff_B) + np.linalg.norm(diff_A))
+
+            return np.array([100*A_sim_a_edges,
+                             100*B_sim_b_edges,
+                             100*A_sim_all])
         else:
             graph[np.where(graph==0)] = -1
             return np.array([100*np.dot(self.important_a_edges, graph[self.positive_indices])/self.a_sum,
