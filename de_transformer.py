@@ -92,7 +92,8 @@ class DiscriminativeEdgesTransformer():
                              100*B_sim_b_edges,
                              100*A_sim_all])
         else:
-            graph[np.where(graph==0)] = -1
-            return np.array([100*np.dot(self.important_a_edges, graph[self.positive_indices])/self.a_sum,
-                         100*np.dot(self.important_b_edges, graph[self.negative_indices])/self.b_sum,
-                         100*np.sum(np.multiply(graph, self.diff_net))/self.full_sum])
+            copy = graph.copy()
+            copy[np.where(copy==0)] = -1
+            return np.array([100*np.dot(self.important_a_edges, copy[self.positive_indices])/self.a_sum,
+                         100*np.dot(self.important_b_edges, copy[self.negative_indices])/self.b_sum,
+                         100*np.sum(np.multiply(copy, self.diff_net))/self.full_sum])

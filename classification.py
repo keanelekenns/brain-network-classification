@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Any
+import json
 from datetime import datetime, timedelta
 from statistics import mean, stdev
 from sklearn.metrics import classification_report, confusion_matrix
@@ -208,3 +210,15 @@ def cross_validate(X, y, pipeline: Pipeline, cv = None, random_state = None, plo
         "params": pipeline.params
     }
     return results, summary
+
+
+def write_results_to_file(filename: str, summary: dict[str, Any], results: list, parameter_grid: dict[str, Any], asd_count: int, td_count: int):
+    with open(filename, 'a') as fp:
+        fp.write("\n============================================================\n")
+        fp.write(f"Date: {datetime.now().isoformat()}\n")
+        fp.write(f"Counts: {asd_count} ASD subjects, {td_count} TD subjects.\n")
+        fp.write("Summary:\n" + json.dumps(summary, default=str) + "\n")
+        for result in results:
+            fp.write(json.dumps(result, default=str) + "\n")
+        fp.write("parameter grid:\n" + json.dumps(parameter_grid, default=str) + "\n")
+        fp.write("\n============================================================\n")
